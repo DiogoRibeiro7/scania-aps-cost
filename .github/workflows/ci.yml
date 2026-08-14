@@ -22,9 +22,9 @@ jobs:
     name: Lint, types and metadata
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -34,7 +34,7 @@ jobs:
           virtualenvs-in-project: true
 
       - name: Cache the virtualenv
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .venv
           key: venv-lint-3.12-${{ hashFiles('poetry.lock') }}
@@ -87,9 +87,9 @@ jobs:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -99,7 +99,7 @@ jobs:
           virtualenvs-in-project: true
 
       - name: Cache the virtualenv
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .venv
           key: venv-core-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
@@ -115,9 +115,9 @@ jobs:
     name: Tests (all optional groups)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -127,7 +127,7 @@ jobs:
           virtualenvs-in-project: true
 
       - name: Cache the virtualenv
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .venv
           key: venv-full-3.12-${{ hashFiles('poetry.lock') }}
@@ -141,7 +141,7 @@ jobs:
             --cov=scania_aps --cov-report=term-missing --cov-report=xml
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-xml
           path: coverage.xml
@@ -151,9 +151,9 @@ jobs:
     name: Build distribution
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -171,7 +171,7 @@ jobs:
           /tmp/probe/bin/python -c "import scania_aps; print(scania_aps.__name__, 'imports cleanly')"
           /tmp/probe/bin/scania-aps --help > /dev/null
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
