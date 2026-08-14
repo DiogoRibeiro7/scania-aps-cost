@@ -1,0 +1,15 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question about methodology
+    url: https://github.com/DiogoRibeiro7/scania-aps-cost/discussions
+    about: >-
+      Ask about the experimental protocol, why a choice was made, or how to
+      interpret a result. Please use Discussions rather than an issue.
+  - name: Security vulnerability
+    url: https://github.com/DiogoRibeiro7/scania-aps-cost/security/policy
+    about: Report privately. Do not open a public issue for security problems.
+  - name: Source dataset
+    url: https://archive.ics.uci.edu/dataset/421/aps+failure+at+scania+trucks
+    about: >-
+      Questions about the data itself, its licensing or its collection belong
+      with the UCI Machine Learning Repository, not this repository.

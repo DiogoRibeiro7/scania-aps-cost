@@ -1,5 +1,11 @@
 # Scania APS Cost-Sensitive Machine Learning
 
+[![CI](https://github.com/DiogoRibeiro7/scania-aps-cost/actions/workflows/ci.yml/badge.svg)](https://github.com/DiogoRibeiro7/scania-aps-cost/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Ruff](https://img.shields.io/badge/lint-ruff-261230)](https://docs.astral.sh/ruff/)
+[![Checked with mypy](https://img.shields.io/badge/types-mypy%20--strict-2a6db2)](https://mypy-lang.org/)
+
 A real-data machine-learning study of failure detection in Scania trucks. The repository uses the UCI **APS Failure at Scania Trucks** dataset to investigate how regularization, optimization, imbalance handling, calibration, representation learning, feature selection and decision thresholds affect a concrete maintenance decision.
 
 The project is not organized around finding the model with the highest accuracy. The industrial objective is
@@ -303,3 +309,35 @@ poetry run pytest
 UCI Machine Learning Repository: **APS Failure at Scania Trucks**, dataset ID 421.
 
 The code is MIT licensed. The dataset remains subject to its original UCI/Scania terms.
+
+## Contributing
+
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first — it lists
+the research rules that reviews enforce, in particular that the official UCI test
+set is never used for any modelling decision and that resampling stays fit-only.
+
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md)
+- [Release process and Zenodo archival](docs/releasing.md)
+
+## Citation
+
+If you use this software or its results, please cite it. Machine-readable
+metadata lives in [CITATION.cff](CITATION.cff), which GitHub renders as a
+"Cite this repository" button, and in [.zenodo.json](.zenodo.json), which
+supplies the deposit metadata when a release is archived.
+
+```bibtex
+@software{ribeiro_scania_aps_cost,
+  author  = {Ribeiro, Diogo},
+  title   = {scania-aps-cost: Cost-Sensitive Machine Learning on Scania APS Failure Data},
+  version = {0.2.0},
+  year    = {2026},
+  url     = {https://github.com/DiogoRibeiro7/scania-aps-cost},
+  orcid   = {0009-0001-2022-7072}
+}
+```
+
+Please cite the dataset separately as the UCI Machine Learning Repository
+*APS Failure at Scania Trucks* (dataset 421); this repository does not
+redistribute it.

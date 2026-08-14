@@ -1,0 +1,43 @@
+cff-version: 1.2.0
+message: "If you use this software or its results, please cite it as below."
+title: "scania-aps-cost: Cost-Sensitive Machine Learning on Scania APS Failure Data"
+abstract: >-
+  A reproducible machine-learning study of air pressure system (APS) failure
+  detection in Scania trucks, built on the UCI "APS Failure at Scania Trucks"
+  dataset. The software compares regularization, optimization, imbalance
+  handling, probability calibration, representation learning, feature selection
+  and decision thresholds against an explicit maintenance cost function,
+  J = 10 * FP + 500 * FN, rather than against accuracy. It implements a
+  leakage-safe four-way development split (fit, tune, calibration, threshold)
+  that keeps the official UCI test set outside every modelling decision.
+type: software
+authors:
+  - family-names: Ribeiro
+    given-names: Diogo
+    orcid: "https://orcid.org/0009-0001-2022-7072"
+version: 0.2.0
+date-released: "2026-08-14"
+license: MIT
+repository-code: "https://github.com/DiogoRibeiro7/scania-aps-cost"
+keywords:
+  - cost-sensitive learning
+  - imbalanced classification
+  - predictive maintenance
+  - probability calibration
+  - decision threshold optimization
+  - feature selection
+  - gradient boosting
+  - neural networks
+  - reproducible research
+references:
+  - type: database
+    title: "APS Failure at Scania Trucks"
+    abbreviation: "UCI ML Repository, dataset 421"
+    year: 2016
+    url: "https://archive.ics.uci.edu/dataset/421/aps+failure+at+scania+trucks"
+    notes: >-
+      Source data. Distributed by the UCI Machine Learning Repository and
+      subject to its original UCI/Scania terms, which are separate from the
+      MIT license covering this software.
+    authors:
+      - name: "Scania CV AB"

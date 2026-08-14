@@ -1,0 +1,70 @@
+name: Feature or study proposal
+description: Propose a model family, study, metric or tooling change.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is a research codebase. The strongest proposals name the question
+        they answer, not only the code they add.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: What question would this answer?
+      description: >-
+        For example: "does isotonic calibration beat Platt scaling once the
+        threshold is re-optimized on the calibration subset?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What would be added or changed, and roughly where?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of proposal
+      options:
+        - New model family
+        - New study or ablation
+        - New metric or reporting
+        - Data handling or preprocessing
+        - Tooling, CI or packaging
+        - Documentation
+    validations:
+      required: true
+
+  - type: textarea
+    id: cost-impact
+    attributes:
+      label: Expected effect on maintenance cost
+      description: >-
+        Do you expect this to lower `J = 10*FP + 500*FN`, or is it a
+        reproducibility, clarity or performance change with no effect on the
+        reported cost? Either answer is fine — say which.
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: New dependencies
+      description: >-
+        Any new library must go in an optional Poetry group and be imported
+        lazily. Which group would it belong to?
+
+  - type: checkboxes
+    id: protocol
+    attributes:
+      label: Protocol check
+      description: See CONTRIBUTING.md for the full list.
+      options:
+        - label: This does not use the official UCI test set for any modelling decision.
+        - label: This keeps the fit / tune / calibration / threshold roles separate.
+        - label: Any resampling this introduces stays inside a fit-only pipeline.

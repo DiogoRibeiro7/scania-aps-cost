@@ -1,0 +1,15 @@
+# Default owner for everything in the repository.
+*                           @DiogoRibeiro7
+
+# The experimental protocol is the part most easily broken by a well-meaning
+# change, so these paths are called out explicitly.
+/src/scania_aps/split.py    @DiogoRibeiro7
+/src/scania_aps/costs.py    @DiogoRibeiro7
+/src/scania_aps/metrics.py  @DiogoRibeiro7
+/src/scania_aps/scoring.py  @DiogoRibeiro7
+
+# Packaging, CI and citation metadata.
+/pyproject.toml             @DiogoRibeiro7
+/.github/                   @DiogoRibeiro7
+/CITATION.cff               @DiogoRibeiro7
+/.zenodo.json               @DiogoRibeiro7

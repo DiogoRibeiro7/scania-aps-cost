@@ -1,0 +1,83 @@
+name: Bug report
+description: Something in the package or CLI does not behave as documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. If the problem is a *result* that looks wrong
+        rather than a crash, please still use this form and say what number you
+        expected — a silently wrong cost is the worst kind of bug in this
+        project.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you observe, and what did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to reproduce
+      description: >-
+        The exact command or the smallest code snippet that triggers it. If it
+        needs the real UCI data, say so; if it reproduces on synthetic data,
+        that is far more useful.
+      placeholder: |
+        poetry run scania-aps study-calibration --model xgboost
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: traceback
+    attributes:
+      label: Traceback or output
+      description: Paste the full traceback, not just the last line.
+      render: text
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area does this touch?
+      options:
+        - Data loading / download
+        - Splits and leakage safety
+        - A model family
+        - Calibration
+        - Threshold optimization
+        - Imbalance handling
+        - Feature selection
+        - Metrics and cost reporting
+        - CLI or study runners
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: "0.2.0, or the commit SHA you are on"
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Python version and OS
+      placeholder: "Python 3.12 on Ubuntu 24.04"
+    validations:
+      required: true
+
+  - type: textarea
+    id: optional-groups
+    attributes:
+      label: Installed optional groups
+      description: >-
+        Output of `poetry show --only boost,neural,imbalance,explain` or simply
+        which groups you installed. Many issues come down to a missing group.
+      render: shell

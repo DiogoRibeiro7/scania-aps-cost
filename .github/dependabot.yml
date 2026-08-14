@@ -1,0 +1,51 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+    groups:
+      # Scientific stack moves together; one PR is easier to evaluate than five,
+      # because a result shift is usually caused by the combination.
+      scientific-python:
+        patterns:
+          - "numpy"
+          - "pandas"
+          - "pandas-stubs"
+          - "scikit-learn"
+          - "scipy"
+          - "joblib"
+      boosting:
+        patterns:
+          - "xgboost"
+          - "lightgbm"
+      dev-tooling:
+        patterns:
+          - "ruff"
+          - "mypy"
+          - "pytest*"
+          - "pre-commit"
+    ignore:
+      # Major bumps of the heavy optional libraries change numerical results,
+      # so they are adopted deliberately rather than by automated PR.
+      - dependency-name: "torch"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "xgboost"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "lightgbm"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "ci"
+    commit-message:
+      prefix: "ci"
