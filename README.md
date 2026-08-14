@@ -5,6 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Ruff](https://img.shields.io/badge/lint-ruff-261230)](https://docs.astral.sh/ruff/)
 [![Checked with mypy](https://img.shields.io/badge/types-mypy%20--strict-2a6db2)](https://mypy-lang.org/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21940301.svg)](https://doi.org/10.5281/zenodo.21940301)
 
 A real-data machine-learning study of failure detection in Scania trucks. The repository uses the UCI **APS Failure at Scania Trucks** dataset to investigate how regularization, optimization, imbalance handling, calibration, representation learning, feature selection and decision thresholds affect a concrete maintenance decision.
 
@@ -327,11 +328,16 @@ metadata lives in [CITATION.cff](CITATION.cff), which GitHub renders as a
 "Cite this repository" button, and in [.zenodo.json](.zenodo.json), which
 supplies the deposit metadata when a release is archived.
 
+The concept DOI [10.5281/zenodo.21940301](https://doi.org/10.5281/zenodo.21940301) always resolves to
+the newest version. Cite a specific version's own DOI when you need the exact
+code a result came from.
+
 ```bibtex
 @software{ribeiro_scania_aps_cost,
   author  = {Ribeiro, Diogo},
   title   = {scania-aps-cost: Cost-Sensitive Machine Learning on Scania APS Failure Data},
   version = {0.2.2},
+  doi     = {10.5281/zenodo.21940301},
   year    = {2026},
   url     = {https://github.com/DiogoRibeiro7/scania-aps-cost},
   orcid   = {0009-0001-2022-7072}
