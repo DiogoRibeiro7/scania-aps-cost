@@ -14,6 +14,7 @@ type: software
 authors:
   - family-names: Ribeiro
     given-names: Diogo
+    affiliation: "School of Media Arts and Design, Polytechnic of Porto, Portugal"
     orcid: "https://orcid.org/0009-0001-2022-7072"
 version: 0.2.0
 date-released: "2026-08-14"
