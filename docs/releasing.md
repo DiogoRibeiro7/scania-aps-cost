@@ -14,16 +14,20 @@ poetry run pytest
 poetry build
 ```
 
-## 2. Bump the version in four places
+## 2. Bump the version in five places
 
 The version appears in:
 
-| File            | Field                          |
-| --------------- | ------------------------------ |
-| `pyproject.toml`| `[project] version`            |
-| `CITATION.cff`  | `version` and `date-released`  |
-| `.zenodo.json`  | `version`                      |
-| `CHANGELOG.md`  | a new section heading          |
+| File             | Field                         |
+| ---------------- | ----------------------------- |
+| `pyproject.toml` | `[project] version`           |
+| `CITATION.cff`   | `version` and `date-released` |
+| `.zenodo.json`   | `version`                     |
+| `CHANGELOG.md`   | a new section heading         |
+| `README.md`      | `version` in the BibTeX block |
+
+CI checks the first three against each other. The changelog heading and the
+BibTeX block are on you.
 
 This project uses semantic versioning, read for a research codebase as:
 
