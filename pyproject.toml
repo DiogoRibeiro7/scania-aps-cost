@@ -1,6 +1,6 @@
 [project]
 name = "scania-aps-cost"
-version = "0.2.1"
+version = "0.2.2"
 description = "Cost-sensitive failure prediction on real Scania APS operational data"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"

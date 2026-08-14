@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.2 - 2026-08-15
+
+First release archived on Zenodo. The Zenodo-GitHub integration only picks up
+releases published after it is switched on, so this release exists partly to
+trigger the initial deposit and mint the DOI.
+
+### Changed
+
+- CI no longer triggers on a `develop` branch, which never existed. Feature
+  branches are still covered through the `pull_request` trigger.
+- `main` is now protected: pull request required, all six CI jobs must pass and
+  the branch must be current before merging, with force pushes and deletion
+  blocked.
+
 ## 0.2.1 - 2026-08-14
 
 Repository infrastructure and code quality. **No reported result changes**: the
