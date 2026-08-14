@@ -1,0 +1,78 @@
+[tool.poetry]
+name = "scania-aps-cost"
+version = "0.2.0"
+description = "Cost-sensitive failure prediction on real Scania APS operational data"
+authors = ["Diogo Ribeiro"]
+readme = "README.md"
+packages = [{ include = "scania_aps", from = "src" }]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.14"
+numpy = ">=2.0"
+pandas = ">=2.2"
+scikit-learn = ">=1.5"
+joblib = ">=1.4"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.0"
+pytest-cov = ">=5.0"
+ruff = ">=0.6"
+mypy = ">=1.11"
+pandas-stubs = ">=2.2"
+pre-commit = ">=3.8"
+
+[tool.poetry.group.boost]
+optional = true
+
+[tool.poetry.group.boost.dependencies]
+xgboost = ">=2.1,<4"
+lightgbm = ">=4.5,<5"
+
+[tool.poetry.group.neural]
+optional = true
+
+[tool.poetry.group.neural.dependencies]
+torch = ">=2.4"
+
+[tool.poetry.group.imbalance]
+optional = true
+
+[tool.poetry.group.imbalance.dependencies]
+imbalanced-learn = ">=0.13"
+
+[tool.poetry.group.explain]
+optional = true
+
+[tool.poetry.group.explain.dependencies]
+shap = ">=0.46"
+
+[tool.poetry.group.notebooks]
+optional = true
+
+[tool.poetry.group.notebooks.dependencies]
+jupyter = ">=1.1"
+matplotlib = ">=3.9"
+
+[tool.poetry.scripts]
+scania-aps = "scania_aps.cli:main"
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "ANN", "SIM"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unreachable = true
+plugins = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --disable-warnings --maxfail=1"
