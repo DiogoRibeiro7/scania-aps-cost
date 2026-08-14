@@ -331,7 +331,7 @@ supplies the deposit metadata when a release is archived.
 @software{ribeiro_scania_aps_cost,
   author  = {Ribeiro, Diogo},
   title   = {scania-aps-cost: Cost-Sensitive Machine Learning on Scania APS Failure Data},
-  version = {0.2.1},
+  version = {0.2.2},
   year    = {2026},
   url     = {https://github.com/DiogoRibeiro7/scania-aps-cost},
   orcid   = {0009-0001-2022-7072}
