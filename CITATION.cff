@@ -20,6 +20,7 @@ version: 0.2.2
 date-released: "2026-08-15"
 license: MIT
 repository-code: "https://github.com/DiogoRibeiro7/scania-aps-cost"
+doi: "10.5281/zenodo.21940301"
 keywords:
   - cost-sensitive learning
   - imbalanced classification

@@ -2,9 +2,9 @@
 
 ## 0.2.2 - 2026-08-15
 
-First release archived on Zenodo. The Zenodo-GitHub integration only picks up
-releases published after it is switched on, so this release exists partly to
-trigger the initial deposit and mint the DOI.
+Archived on Zenodo under concept DOI
+[10.5281/zenodo.21940301](https://doi.org/10.5281/zenodo.21940301), which always resolves to the newest
+version. 0.2.1 carries its own version DOI and was archived as well.
 
 ### Changed
 
