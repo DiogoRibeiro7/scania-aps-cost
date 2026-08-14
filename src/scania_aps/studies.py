@@ -2,22 +2,25 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Iterable, Literal
+from typing import Any, Literal
 
 import joblib
 import numpy as np
 import pandas as pd
+from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import RFE, SelectFromModel, SelectKBest, mutual_info_classif
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import ExtraTreesClassifier
 
-from scania_aps.calibration import CalibrationMethod, calibrate_prefit_model
+from scania_aps._types import Estimator, FittedEstimator
+from scania_aps.calibration import calibrate_prefit_model
 from scania_aps.costs import optimize_score_threshold
 from scania_aps.data import read_raw_csv
 from scania_aps.metrics import Evaluation, evaluate_scores
@@ -98,7 +101,7 @@ def _fit_selected(
     candidate: ModelCandidate,
     *,
     calibration: CalibrationChoice,
-) -> Any:
+) -> FittedEstimator:
     X_refit = pd.concat([split.X_fit, split.X_tune], axis=0)
     y_refit = pd.concat([split.y_fit, split.y_tune], axis=0)
     model = build_candidate(candidate)
@@ -113,13 +116,19 @@ def _fit_selected(
     )
 
 
-def _final_evaluation(model: Any, split: ResearchSplit, X_test: pd.DataFrame, y_test: pd.Series) -> Evaluation:
+def _final_evaluation(
+    model: FittedEstimator, split: ResearchSplit, X_test: pd.DataFrame, y_test: pd.Series
+) -> Evaluation:
     threshold_scores = positive_class_scores(model, split.X_threshold)
-    threshold = optimize_score_threshold(split.y_threshold.to_numpy(), threshold_scores.values).threshold
+    threshold = optimize_score_threshold(
+        split.y_threshold.to_numpy(), threshold_scores.values
+    ).threshold
     test_scores = positive_class_scores(model, X_test)
     if test_scores.kind != threshold_scores.kind:
         raise RuntimeError("Score type changed between threshold and test prediction.")
-    return evaluate_scores(y_test.to_numpy(), test_scores.values, threshold, score_kind=test_scores.kind)
+    return evaluate_scores(
+        y_test.to_numpy(), test_scores.values, threshold, score_kind=test_scores.kind
+    )
 
 
 def run_model_family_study(
@@ -154,12 +163,10 @@ def run_model_family_study(
         best, trace = _select_candidate(split, candidates)
         model = _fit_selected(split, best, calibration=calibration)
         evaluation = _final_evaluation(model, split, test.X, test.y)
-        try:
+        # PyTorch-backed models can be environment-sensitive when pickled; the
+        # configuration and metrics are always persisted regardless.
+        with contextlib.suppress(Exception):
             joblib.dump(model, output / f"{family}_model.joblib")
-        except Exception:
-            # PyTorch-backed models can be environment-sensitive when pickled;
-            # the configuration and metrics are always persisted regardless.
-            pass
         (output / f"{family}_selection.json").write_text(
             json.dumps([asdict(item) for item in trace], indent=2, default=str), encoding="utf-8"
         )
@@ -228,11 +235,13 @@ def run_imbalance_study(train_csv: Path, test_csv: Path, artifacts_dir: Path) ->
     X_refit = pd.concat([split.X_fit, split.X_tune, split.X_calibration], axis=0)
     y_refit = pd.concat([split.y_fit, split.y_tune, split.y_calibration], axis=0)
 
-    strategies: list[tuple[str, Any]] = [
+    strategies: list[tuple[str, Estimator]] = [
         ("none", build_resampled_pipeline(_logistic_base(), strategy="none")),
         (
             "class_weight",
-            build_resampled_pipeline(_logistic_base(class_weight={0: 1.0, 1: 20.0}), strategy="none"),
+            build_resampled_pipeline(
+                _logistic_base(class_weight={0: 1.0, 1: 20.0}), strategy="none"
+            ),
         ),
         ("undersample", build_resampled_pipeline(_logistic_base(), strategy="undersample")),
         ("smote", build_resampled_pipeline(_logistic_base(), strategy="smote")),
@@ -273,7 +282,7 @@ def run_imbalance_study(train_csv: Path, test_csv: Path, artifacts_dir: Path) ->
 
 
 def _mi_score(X: np.ndarray, y: np.ndarray) -> np.ndarray:
-    return mutual_info_classif(X, y, random_state=42)
+    return np.asarray(mutual_info_classif(X, y, random_state=42))
 
 
 def run_feature_selection_study(
@@ -290,10 +299,15 @@ def run_feature_selection_study(
     y_refit = pd.concat([split.y_fit, split.y_tune, split.y_calibration], axis=0)
 
     linear = LogisticRegression(
-        penalty="l2", C=0.1, class_weight={0: 1.0, 1: 20.0}, solver="saga", max_iter=4000,
-        random_state=42, n_jobs=-1,
+        penalty="l2",
+        C=0.1,
+        class_weight={0: 1.0, 1: 20.0},
+        solver="saga",
+        max_iter=4000,
+        random_state=42,
+        n_jobs=-1,
     )
-    selectors: list[tuple[str, Any]] = [
+    selectors: list[tuple[str, Estimator]] = [
         ("all_features", "passthrough"),
         (
             "l1_select_from_model",
@@ -316,7 +330,8 @@ def run_feature_selection_study(
         (
             "extra_trees_select",
             SelectFromModel(
-                ExtraTreesClassifier(n_estimators=300, random_state=42, n_jobs=-1), threshold="median"
+                ExtraTreesClassifier(n_estimators=300, random_state=42, n_jobs=-1),
+                threshold="median",
             ),
         ),
     ]
@@ -381,12 +396,16 @@ def run_xgboost_ablation(train_csv: Path, test_csv: Path, artifacts_dir: Path) -
         test_scores = positive_class_scores(model, test.X)
         if optimize_decision:
             threshold_scores = positive_class_scores(model, split.X_threshold)
-            threshold = optimize_score_threshold(split.y_threshold.to_numpy(), threshold_scores.values).threshold
+            threshold = optimize_score_threshold(
+                split.y_threshold.to_numpy(), threshold_scores.values
+            ).threshold
         else:
             if test_scores.kind != "probability":
                 raise RuntimeError("0.5 ablation requires probability scores.")
             threshold = 0.5
-        evaluation = evaluate_scores(test.y.to_numpy(), test_scores.values, threshold, score_kind=test_scores.kind)
+        evaluation = evaluate_scores(
+            test.y.to_numpy(), test_scores.values, threshold, score_kind=test_scores.kind
+        )
         rows.append({"ablation": name, **evaluation.to_dict()})
 
     output = artifacts_dir / "ablation_study"

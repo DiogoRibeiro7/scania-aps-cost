@@ -9,6 +9,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
+from scania_aps._types import Estimator
 from scania_aps.models.autoencoder import AutoencoderLogisticClassifier
 from scania_aps.models.boosted import BoostedConfig, build_boosted_classifier
 from scania_aps.models.lightgbm import LightGBMConfig, build_lightgbm_classifier
@@ -38,7 +39,7 @@ class ModelCandidate:
     parameters: dict[str, Any]
 
 
-def build_candidate(candidate: ModelCandidate) -> Any:
+def build_candidate(candidate: ModelCandidate) -> Estimator:
     """Construct a fresh estimator from a model candidate."""
 
     p = dict(candidate.parameters)

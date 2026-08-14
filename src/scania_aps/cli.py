@@ -68,7 +68,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def _print_table(frame: object) -> None:
     if hasattr(frame, "to_string"):
-        print(frame.to_string(index=False))  # type: ignore[union-attr]
+        print(frame.to_string(index=False))
     else:
         print(frame)
 

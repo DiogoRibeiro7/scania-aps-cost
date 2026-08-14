@@ -6,11 +6,7 @@ from scania_aps.data import read_raw_csv
 def test_parser_finds_header_and_converts_missing_values(tmp_path: Path) -> None:
     path = tmp_path / "mini.csv"
     path.write_text(
-        "metadata line\n"
-        "another metadata line\n"
-        'class,aa_000,ab_000\n'
-        'neg,1,na\n'
-        'pos,2,3\n',
+        "metadata line\nanother metadata line\nclass,aa_000,ab_000\nneg,1,na\npos,2,3\n",
         encoding="utf-8",
     )
 

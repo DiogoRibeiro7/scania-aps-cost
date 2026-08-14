@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from collections.abc import Sequence
+from typing import Any, Literal, cast
 
 import numpy as np
 
@@ -13,6 +14,17 @@ SearchProfile = Literal["quick", "full"]
 
 def _log_uniform(rng: np.random.Generator, low: float, high: float) -> float:
     return float(np.exp(rng.uniform(np.log(low), np.log(high))))
+
+
+def _optional_weight(rng: np.random.Generator, options: Sequence[float | None]) -> float | None:
+    """Draw from a sequence that mixes ``None`` with class-weight values.
+
+    ``Generator.choice`` already coerces such a sequence to an object array
+    internally. Doing it explicitly leaves the draw bit-for-bit identical while
+    giving the call a static type that survives ``--strict``.
+    """
+
+    return cast("float | None", rng.choice(np.asarray(options, dtype=object)))
 
 
 def candidates_for_family(
@@ -57,8 +69,12 @@ def candidates_for_family(
                     parameters={
                         "penalty": penalty,
                         "C": _log_uniform(rng, 1e-4, 1e2),
-                        "l1_ratio": float(rng.uniform(0.05, 0.95)) if penalty == "elasticnet" else None,
-                        "positive_class_weight": rng.choice([None, 5.0, 10.0, 20.0, 50.0]),
+                        "l1_ratio": float(rng.uniform(0.05, 0.95))
+                        if penalty == "elasticnet"
+                        else None,
+                        "positive_class_weight": _optional_weight(
+                            rng, [None, 5.0, 10.0, 20.0, 50.0]
+                        ),
                     },
                 )
             )
@@ -81,20 +97,30 @@ def candidates_for_family(
                     name=f"svm_{len(result)}",
                     parameters={
                         "C": _log_uniform(rng, 1e-4, 1e2),
-                        "positive_class_weight": rng.choice([None, 5.0, 10.0, 20.0, 50.0]),
+                        "positive_class_weight": _optional_weight(
+                            rng, [None, 5.0, 10.0, 20.0, 50.0]
+                        ),
                     },
                 )
             )
         return result
 
     if family in {"random_forest", "extra_trees"}:
-        defaults = [
+        defaults: list[dict[str, Any]] = [
             {"n_estimators": 400, "max_depth": None, "min_samples_leaf": 1, "max_features": "sqrt"},
             {"n_estimators": 500, "max_depth": 18, "min_samples_leaf": 3, "max_features": 0.5},
-            {"n_estimators": 600, "max_depth": 10, "min_samples_leaf": 10, "max_features": "sqrt", "positive_class_weight": 20.0},
+            {
+                "n_estimators": 600,
+                "max_depth": 10,
+                "min_samples_leaf": 10,
+                "max_features": "sqrt",
+                "positive_class_weight": 20.0,
+            },
         ]
         for index, params in enumerate(defaults):
-            result.append(ModelCandidate(family=family, name=f"{family}_{index}", parameters=params))
+            result.append(
+                ModelCandidate(family=family, name=f"{family}_{index}", parameters=params)
+            )
         while len(result) < n:
             depth_choice = rng.choice([0, 8, 12, 18, 24])
             result.append(
@@ -106,7 +132,7 @@ def candidates_for_family(
                         "max_depth": None if depth_choice == 0 else int(depth_choice),
                         "min_samples_leaf": int(rng.choice([1, 2, 5, 10, 20])),
                         "max_features": ["sqrt", "log2", 0.5, 0.8][int(rng.integers(4))],
-                        "positive_class_weight": rng.choice([None, 10.0, 20.0, 50.0]),
+                        "positive_class_weight": _optional_weight(rng, [None, 10.0, 20.0, 50.0]),
                     },
                 )
             )
@@ -114,9 +140,39 @@ def candidates_for_family(
 
     if family == "xgboost":
         defaults = [
-            {"n_estimators": 500, "learning_rate": 0.05, "max_depth": 5, "min_child_weight": 3.0, "subsample": 0.85, "colsample_bytree": 0.85, "reg_alpha": 0.0, "reg_lambda": 1.0, "scale_pos_weight": 20.0},
-            {"n_estimators": 800, "learning_rate": 0.03, "max_depth": 7, "min_child_weight": 5.0, "subsample": 0.75, "colsample_bytree": 0.75, "reg_alpha": 0.5, "reg_lambda": 5.0, "scale_pos_weight": 20.0},
-            {"n_estimators": 350, "learning_rate": 0.08, "max_depth": 3, "min_child_weight": 10.0, "subsample": 1.0, "colsample_bytree": 1.0, "reg_alpha": 1.0, "reg_lambda": 10.0, "scale_pos_weight": 50.0},
+            {
+                "n_estimators": 500,
+                "learning_rate": 0.05,
+                "max_depth": 5,
+                "min_child_weight": 3.0,
+                "subsample": 0.85,
+                "colsample_bytree": 0.85,
+                "reg_alpha": 0.0,
+                "reg_lambda": 1.0,
+                "scale_pos_weight": 20.0,
+            },
+            {
+                "n_estimators": 800,
+                "learning_rate": 0.03,
+                "max_depth": 7,
+                "min_child_weight": 5.0,
+                "subsample": 0.75,
+                "colsample_bytree": 0.75,
+                "reg_alpha": 0.5,
+                "reg_lambda": 5.0,
+                "scale_pos_weight": 20.0,
+            },
+            {
+                "n_estimators": 350,
+                "learning_rate": 0.08,
+                "max_depth": 3,
+                "min_child_weight": 10.0,
+                "subsample": 1.0,
+                "colsample_bytree": 1.0,
+                "reg_alpha": 1.0,
+                "reg_lambda": 10.0,
+                "scale_pos_weight": 50.0,
+            },
         ]
         for i, params in enumerate(defaults):
             result.append(ModelCandidate(family=family, name=f"xgboost_{i}", parameters=params))
@@ -142,9 +198,39 @@ def candidates_for_family(
 
     if family == "lightgbm":
         defaults = [
-            {"n_estimators": 600, "learning_rate": 0.04, "num_leaves": 31, "min_child_samples": 20, "subsample": 0.85, "colsample_bytree": 0.85, "reg_alpha": 0.0, "reg_lambda": 1.0, "positive_class_weight": 20.0},
-            {"n_estimators": 850, "learning_rate": 0.025, "num_leaves": 63, "min_child_samples": 40, "subsample": 0.75, "colsample_bytree": 0.75, "reg_alpha": 0.5, "reg_lambda": 5.0, "positive_class_weight": 20.0},
-            {"n_estimators": 450, "learning_rate": 0.06, "num_leaves": 15, "min_child_samples": 80, "subsample": 1.0, "colsample_bytree": 1.0, "reg_alpha": 1.0, "reg_lambda": 10.0, "positive_class_weight": 50.0},
+            {
+                "n_estimators": 600,
+                "learning_rate": 0.04,
+                "num_leaves": 31,
+                "min_child_samples": 20,
+                "subsample": 0.85,
+                "colsample_bytree": 0.85,
+                "reg_alpha": 0.0,
+                "reg_lambda": 1.0,
+                "positive_class_weight": 20.0,
+            },
+            {
+                "n_estimators": 850,
+                "learning_rate": 0.025,
+                "num_leaves": 63,
+                "min_child_samples": 40,
+                "subsample": 0.75,
+                "colsample_bytree": 0.75,
+                "reg_alpha": 0.5,
+                "reg_lambda": 5.0,
+                "positive_class_weight": 20.0,
+            },
+            {
+                "n_estimators": 450,
+                "learning_rate": 0.06,
+                "num_leaves": 15,
+                "min_child_samples": 80,
+                "subsample": 1.0,
+                "colsample_bytree": 1.0,
+                "reg_alpha": 1.0,
+                "reg_lambda": 10.0,
+                "positive_class_weight": 50.0,
+            },
         ]
         for i, params in enumerate(defaults):
             result.append(ModelCandidate(family=family, name=f"lightgbm_{i}", parameters=params))
@@ -170,9 +256,37 @@ def candidates_for_family(
 
     if family == "mlp":
         variants = [
-            {"optimizer": "sgd", "learning_rate": 0.02, "weight_decay": 0.0, "dropout": 0.0, "batch_norm": False, "scheduler": "cosine", "loss": "bce", "max_epochs": 80},
-            {"optimizer": "adam", "learning_rate": 1e-3, "weight_decay": 0.0, "dropout": 0.2, "batch_norm": True, "scheduler": "plateau", "loss": "bce", "max_epochs": 80},
-            {"optimizer": "adamw", "learning_rate": 1e-3, "weight_decay": 1e-4, "dropout": 0.3, "batch_norm": True, "scheduler": "plateau", "loss": "focal", "positive_class_weight": 10.0, "max_epochs": 80},
+            {
+                "optimizer": "sgd",
+                "learning_rate": 0.02,
+                "weight_decay": 0.0,
+                "dropout": 0.0,
+                "batch_norm": False,
+                "scheduler": "cosine",
+                "loss": "bce",
+                "max_epochs": 80,
+            },
+            {
+                "optimizer": "adam",
+                "learning_rate": 1e-3,
+                "weight_decay": 0.0,
+                "dropout": 0.2,
+                "batch_norm": True,
+                "scheduler": "plateau",
+                "loss": "bce",
+                "max_epochs": 80,
+            },
+            {
+                "optimizer": "adamw",
+                "learning_rate": 1e-3,
+                "weight_decay": 1e-4,
+                "dropout": 0.3,
+                "batch_norm": True,
+                "scheduler": "plateau",
+                "loss": "focal",
+                "positive_class_weight": 10.0,
+                "max_epochs": 80,
+            },
         ]
         for i, params in enumerate(variants):
             result.append(ModelCandidate(family=family, name=f"mlp_{i}", parameters=params))
@@ -182,7 +296,9 @@ def candidates_for_family(
                     family=family,
                     name=f"mlp_{len(result)}",
                     parameters={
-                        "hidden_dims": [(128, 64), (256, 128), (256, 128, 64)][int(rng.integers(3))],
+                        "hidden_dims": [(128, 64), (256, 128), (256, 128, 64)][
+                            int(rng.integers(3))
+                        ],
                         "optimizer": str(rng.choice(["sgd", "adam", "adamw"])),
                         "learning_rate": _log_uniform(rng, 1e-4, 3e-2),
                         "weight_decay": _log_uniform(rng, 1e-7, 1e-2),
@@ -191,7 +307,7 @@ def candidates_for_family(
                         "batch_size": int(rng.choice([128, 256, 512, 1024])),
                         "scheduler": str(rng.choice(["none", "cosine", "plateau"])),
                         "loss": str(rng.choice(["bce", "focal"])),
-                        "positive_class_weight": rng.choice([None, 5.0, 10.0, 20.0]),
+                        "positive_class_weight": _optional_weight(rng, [None, 5.0, 10.0, 20.0]),
                         "max_epochs": 100,
                     },
                 )
@@ -200,9 +316,29 @@ def candidates_for_family(
 
     if family == "autoencoder":
         variants = [
-            {"latent_dim": 16, "hidden_dim": 96, "weight_decay": 1e-5, "classifier_C": 0.1, "max_epochs": 40},
-            {"latent_dim": 32, "hidden_dim": 128, "weight_decay": 1e-5, "classifier_C": 1.0, "positive_class_weight": 20.0, "max_epochs": 40},
-            {"latent_dim": 64, "hidden_dim": 192, "weight_decay": 1e-4, "classifier_C": 0.1, "positive_class_weight": 20.0, "max_epochs": 40},
+            {
+                "latent_dim": 16,
+                "hidden_dim": 96,
+                "weight_decay": 1e-5,
+                "classifier_C": 0.1,
+                "max_epochs": 40,
+            },
+            {
+                "latent_dim": 32,
+                "hidden_dim": 128,
+                "weight_decay": 1e-5,
+                "classifier_C": 1.0,
+                "positive_class_weight": 20.0,
+                "max_epochs": 40,
+            },
+            {
+                "latent_dim": 64,
+                "hidden_dim": 192,
+                "weight_decay": 1e-4,
+                "classifier_C": 0.1,
+                "positive_class_weight": 20.0,
+                "max_epochs": 40,
+            },
         ]
         for i, params in enumerate(variants):
             result.append(ModelCandidate(family=family, name=f"autoencoder_{i}", parameters=params))
@@ -217,7 +353,7 @@ def candidates_for_family(
                         "learning_rate": _log_uniform(rng, 1e-4, 3e-3),
                         "weight_decay": _log_uniform(rng, 1e-7, 1e-3),
                         "classifier_C": _log_uniform(rng, 1e-3, 10.0),
-                        "positive_class_weight": rng.choice([None, 10.0, 20.0, 50.0]),
+                        "positive_class_weight": _optional_weight(rng, [None, 10.0, 20.0, 50.0]),
                         "max_epochs": 50,
                     },
                 )

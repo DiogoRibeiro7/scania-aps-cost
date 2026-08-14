@@ -6,8 +6,8 @@ from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
-from sklearn.base import ClassifierMixin
 
+from scania_aps._types import Estimator
 from scania_aps.costs import optimize_threshold
 from scania_aps.metrics import evaluate_probabilities
 from scania_aps.models.logistic import LogisticConfig, build_logistic_pipeline
@@ -71,9 +71,9 @@ def tune_logistic(
     results: list[LogisticCandidateResult] = []
 
     for config in sample_logistic_configs(n_trials, random_state=random_state):
-        model: ClassifierMixin = build_logistic_pipeline(config)
+        model: Estimator = build_logistic_pipeline(config)
         model.fit(X_fit, y_fit)
-        probabilities = model.predict_proba(X_tune)[:, 1]  # type: ignore[attr-defined]
+        probabilities = model.predict_proba(X_tune)[:, 1]
         threshold_result = optimize_threshold(y_tune.to_numpy(), probabilities)
         evaluation = evaluate_probabilities(
             y_tune.to_numpy(),

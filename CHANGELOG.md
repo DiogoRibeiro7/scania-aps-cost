@@ -1,5 +1,46 @@
 # Changelog
 
+## Unreleased
+
+Repository infrastructure and code quality. **No reported result changes**: the
+candidate-sampling RNG draws are bit-for-bit identical to 0.2.0, and no
+modelling logic was altered.
+
+### Added
+
+- `CITATION.cff` and `.zenodo.json` so releases are citable and archivable, both
+  carrying the author ORCID.
+- `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md` and `CODEOWNERS`.
+- Issue forms, a pull-request template and a Dependabot configuration that
+  groups the scientific stack and holds back major bumps of the heavy optional
+  libraries, because those move numerical results.
+- `docs/releasing.md` covering the version bump, tag and Zenodo deposit, for
+  both the public GitHub integration and the manual private route.
+- `.gitattributes` and `.editorconfig`.
+- `src/scania_aps/_types.py` with documented aliases for the scikit-learn and
+  PyTorch objects that have no static type.
+- A PEP 561 `py.typed` marker, so downstream users get this package's types.
+- Packaging metadata: classifiers, keywords and project URLs.
+
+### Changed
+
+- CI now runs four jobs: lint and type checking, a core-dependency test matrix
+  on Python 3.11–3.13, a full run with the optional groups installed, and a
+  build job that verifies the wheel installs and the CLI starts on its own.
+- Migrated packaging metadata from `[tool.poetry]` to PEP 621 `[project]`.
+- Dropped `--maxfail=1` from the pytest defaults so a CI run reports every
+  failure rather than only the first.
+- `joblib.dump` failures during a study now use `contextlib.suppress`.
+
+### Fixed
+
+- The test suite no longer requires PyTorch, XGBoost and LightGBM to be
+  installed; tests needing an optional backend skip instead of failing, which is
+  what broke CI on the initial commit.
+- 54 ruff violations and 67 mypy `--strict` errors across the package; both now
+  pass clean. Missing third-party stubs are declared as mypy overrides rather
+  than left as noise.
+
 ## 0.2.0
 
 Expanded the project from the original logistic/XGBoost baseline into a full real-data machine-learning study.

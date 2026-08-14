@@ -7,14 +7,16 @@ from typing import Literal
 import numpy as np
 from numpy.typing import NDArray
 from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
+from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
+
+from scania_aps._types import Tensor
 
 OptimizerName = Literal["sgd", "adam", "adamw"]
 SchedulerName = Literal["none", "cosine", "plateau"]
 LossName = Literal["bce", "focal"]
 
 
-class TorchMLPClassifier(ClassifierMixin, BaseEstimator):
+class TorchMLPClassifier(ClassifierMixin, BaseEstimator):  # type: ignore[misc]
     """Small sklearn-compatible PyTorch classifier for tabular experiments.
 
     The estimator intentionally exposes optimizer, weight decay, dropout,
@@ -84,7 +86,7 @@ class TorchMLPClassifier(ClassifierMixin, BaseEstimator):
         if self.positive_class_weight is not None and self.positive_class_weight <= 0:
             raise ValueError("positive_class_weight must be positive when supplied.")
 
-    def fit(self, X: NDArray[np.floating], y: NDArray[np.integer]) -> "TorchMLPClassifier":
+    def fit(self, X: NDArray[np.floating], y: NDArray[np.integer]) -> TorchMLPClassifier:
         """Fit the network using an internal stratified validation split."""
 
         self._validate_hyperparameters()
@@ -98,7 +100,9 @@ class TorchMLPClassifier(ClassifierMixin, BaseEstimator):
             from torch import nn
             from torch.utils.data import DataLoader, TensorDataset
         except ImportError as exc:  # pragma: no cover
-            raise RuntimeError("Install the optional 'neural' dependency group to use PyTorch.") from exc
+            raise RuntimeError(
+                "Install the optional 'neural' dependency group to use PyTorch."
+            ) from exc
 
         from sklearn.model_selection import train_test_split
 
@@ -133,7 +137,10 @@ class TorchMLPClassifier(ClassifierMixin, BaseEstimator):
 
         if self.optimizer == "sgd":
             optimizer = torch.optim.SGD(
-                model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay, momentum=0.9
+                model.parameters(),
+                lr=self.learning_rate,
+                weight_decay=self.weight_decay,
+                momentum=0.9,
             )
         elif self.optimizer == "adam":
             optimizer = torch.optim.Adam(
@@ -148,16 +155,20 @@ class TorchMLPClassifier(ClassifierMixin, BaseEstimator):
         if self.scheduler == "cosine":
             scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.max_epochs)
         elif self.scheduler == "plateau":
-            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=4, factor=0.5)
+            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+                optimizer, patience=4, factor=0.5
+            )
         else:
             scheduler = None
 
         pos_weight = None
         if self.positive_class_weight is not None:
-            pos_weight = torch.tensor([self.positive_class_weight], dtype=torch.float32, device=device)
+            pos_weight = torch.tensor(
+                [self.positive_class_weight], dtype=torch.float32, device=device
+            )
         bce = nn.BCEWithLogitsLoss(pos_weight=pos_weight, reduction="none")
 
-        def loss_fn(logits: object, targets: object) -> object:
+        def loss_fn(logits: Tensor, targets: Tensor) -> Tensor:
             raw = bce(logits, targets)
             if self.loss == "bce":
                 return raw.mean()
@@ -173,7 +184,7 @@ class TorchMLPClassifier(ClassifierMixin, BaseEstimator):
         X_val_t = torch.from_numpy(np.asarray(X_val, dtype=np.float32)).to(device)
         y_val_t = torch.from_numpy(np.asarray(y_val, dtype=np.float32)).reshape(-1, 1).to(device)
 
-        best_state: dict[str, object] | None = None
+        best_state: dict[str, Tensor] | None = None
         best_val = float("inf")
         stale_epochs = 0
         history: list[dict[str, float]] = []
@@ -207,7 +218,9 @@ class TorchMLPClassifier(ClassifierMixin, BaseEstimator):
 
             if val_loss < best_val - 1e-6:
                 best_val = val_loss
-                best_state = {key: value.detach().cpu().clone() for key, value in model.state_dict().items()}
+                best_state = {
+                    key: value.detach().cpu().clone() for key, value in model.state_dict().items()
+                }
                 stale_epochs = 0
             else:
                 stale_epochs += 1

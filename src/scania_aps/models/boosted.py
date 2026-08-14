@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+
+from scania_aps._types import Estimator
 
 
 @dataclass(frozen=True)
@@ -37,7 +38,7 @@ class BoostedConfig:
             raise ValueError("scale_pos_weight must be positive.")
 
 
-def build_boosted_classifier(config: BoostedConfig) -> Any:
+def build_boosted_classifier(config: BoostedConfig) -> Estimator:
     """Construct an XGBoost classifier.
 
     XGBoost is an optional dependency so importing the base package does not

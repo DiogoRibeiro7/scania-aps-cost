@@ -1,4 +1,5 @@
-.PHONY: install install-all test lint download logistic boosted study calibration imbalance features ablation
+.PHONY: install install-all hooks format lint test coverage check build clean \
+        download logistic boosted study calibration imbalance features ablation
 
 install:
 	poetry install
@@ -6,12 +7,32 @@ install:
 install-all:
 	poetry install --with boost,neural,imbalance,explain,notebooks
 
-test:
-	poetry run pytest
+hooks:
+	poetry run pre-commit install
+
+format:
+	poetry run ruff check src tests --fix
+	poetry run ruff format src tests
 
 lint:
 	poetry run ruff check src tests
+	poetry run ruff format --check src tests
 	poetry run mypy src
+
+test:
+	poetry run pytest
+
+coverage:
+	poetry run pytest --cov=scania_aps --cov-report=term-missing
+
+# What CI runs, in one command.
+check: lint test
+
+build:
+	poetry build
+
+clean:
+	rm -rf dist build .pytest_cache .mypy_cache .ruff_cache .coverage htmlcov
 
 download:
 	poetry run scania-aps download

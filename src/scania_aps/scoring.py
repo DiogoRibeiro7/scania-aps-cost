@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
+
+from scania_aps._types import FeatureMatrix, FittedEstimator
 
 ScoreKind = Literal["probability", "decision"]
 
@@ -19,7 +21,7 @@ class ModelScores:
     kind: ScoreKind
 
 
-def positive_class_scores(model: Any, X: Any) -> ModelScores:
+def positive_class_scores(model: FittedEstimator, X: FeatureMatrix) -> ModelScores:
     """Return positive-class probabilities or decision scores.
 
     Probability-producing models are preferred because calibration diagnostics

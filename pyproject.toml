@@ -1,17 +1,52 @@
-[tool.poetry]
+[project]
 name = "scania-aps-cost"
 version = "0.2.0"
 description = "Cost-sensitive failure prediction on real Scania APS operational data"
-authors = ["Diogo Ribeiro"]
 readme = "README.md"
-packages = [{ include = "scania_aps", from = "src" }]
+requires-python = ">=3.11,<3.14"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Diogo Ribeiro" }]
+maintainers = [{ name = "Diogo Ribeiro" }]
+keywords = [
+  "cost-sensitive learning",
+  "imbalanced classification",
+  "predictive maintenance",
+  "probability calibration",
+  "threshold optimization",
+  "reproducible research",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Typing :: Typed",
+]
+dependencies = [
+  "numpy>=2.0",
+  "pandas>=2.2",
+  "scikit-learn>=1.5",
+  "joblib>=1.4",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.11,<3.14"
-numpy = ">=2.0"
-pandas = ">=2.2"
-scikit-learn = ">=1.5"
-joblib = ">=1.4"
+[project.urls]
+Homepage = "https://github.com/DiogoRibeiro7/scania-aps-cost"
+Repository = "https://github.com/DiogoRibeiro7/scania-aps-cost"
+Issues = "https://github.com/DiogoRibeiro7/scania-aps-cost/issues"
+Changelog = "https://github.com/DiogoRibeiro7/scania-aps-cost/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/DiogoRibeiro7/scania-aps-cost/tree/main/docs"
+
+[project.scripts]
+scania-aps = "scania_aps.cli:main"
+
+[tool.poetry]
+packages = [{ include = "scania_aps", from = "src" }]
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.0"
@@ -53,11 +88,8 @@ optional = true
 jupyter = ">=1.1"
 matplotlib = ">=3.9"
 
-[tool.poetry.scripts]
-scania-aps = "scania_aps.cli:main"
-
 [build-system]
-requires = ["poetry-core>=1.9.0"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
@@ -73,6 +105,22 @@ strict = true
 warn_unreachable = true
 plugins = []
 
+# The scientific stack does not ship inline types or a py.typed marker.
+# Silencing the missing stubs here keeps --strict meaningful for this
+# project's own code instead of drowning it in third-party import noise.
+[[tool.mypy.overrides]]
+module = [
+  "imblearn.*",
+  "joblib.*",
+  "lightgbm.*",
+  "shap.*",
+  "sklearn.*",
+  "torch.*",
+  "xgboost.*",
+]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q --disable-warnings --maxfail=1"
+# No --maxfail: CI should report every failure in one run, not just the first.
+addopts = "-q --disable-warnings --strict-markers --strict-config"

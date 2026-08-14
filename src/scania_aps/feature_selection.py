@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Literal
 
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 from sklearn.feature_selection import SelectKBest, mutual_info_classif
 from sklearn.inspection import permutation_importance
+
+from scania_aps._types import FittedEstimator, ShapValues
 
 
 @dataclass(frozen=True)
@@ -43,7 +45,7 @@ def mutual_information_ranking(
 
 
 def permutation_ranking(
-    model: Any,
+    model: FittedEstimator,
     X: pd.DataFrame,
     y: pd.Series,
     *,
@@ -69,7 +71,7 @@ def permutation_ranking(
     return [RankedFeature(str(X.columns[i]), float(means[i])) for i in order]
 
 
-def l1_nonzero_features(model: Any) -> list[RankedFeature]:
+def l1_nonzero_features(model: FittedEstimator) -> list[RankedFeature]:
     """Extract non-zero coefficients from a fitted L1/Elastic-Net pipeline.
 
     Missingness indicators created by the imputer are named ``missing::<raw>``
@@ -101,7 +103,7 @@ def l1_nonzero_features(model: Any) -> list[RankedFeature]:
     return sorted(ranked, key=lambda item: abs(item.score), reverse=True)
 
 
-def tree_importance_ranking(model: Any) -> list[RankedFeature]:
+def tree_importance_ranking(model: FittedEstimator) -> list[RankedFeature]:
     """Extract impurity-based feature importances from a fitted tree pipeline."""
 
     if not hasattr(model, "named_steps"):
@@ -118,7 +120,7 @@ def tree_importance_ranking(model: Any) -> list[RankedFeature]:
     return [RankedFeature(names[i], float(importances[i])) for i in order]
 
 
-def shap_values(model: Any, X: pd.DataFrame, *, max_rows: int = 2000) -> Any:
+def shap_values(model: FittedEstimator, X: pd.DataFrame, *, max_rows: int = 2000) -> ShapValues:
     """Compute optional SHAP values on a bounded held-out sample."""
 
     if max_rows <= 0:

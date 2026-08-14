@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+
+from scania_aps._types import Estimator
 
 
 @dataclass(frozen=True)
@@ -36,14 +37,16 @@ class LightGBMConfig:
             raise ValueError("positive_class_weight must be positive.")
 
 
-def build_lightgbm_classifier(config: LightGBMConfig) -> Any:
+def build_lightgbm_classifier(config: LightGBMConfig) -> Estimator:
     """Construct LightGBM while keeping it an optional dependency."""
 
     config.validate()
     try:
         from lightgbm import LGBMClassifier
     except ImportError as exc:  # pragma: no cover
-        raise RuntimeError("Install the optional 'boost' dependency group to use LightGBM.") from exc
+        raise RuntimeError(
+            "Install the optional 'boost' dependency group to use LightGBM."
+        ) from exc
 
     return LGBMClassifier(
         objective="binary",

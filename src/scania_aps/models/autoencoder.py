@@ -6,10 +6,10 @@ import numpy as np
 from numpy.typing import NDArray
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.linear_model import LogisticRegression
-from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
+from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
 
 
-class AutoencoderLogisticClassifier(ClassifierMixin, BaseEstimator):
+class AutoencoderLogisticClassifier(ClassifierMixin, BaseEstimator):  # type: ignore[misc]
     """Learn a nonlinear latent representation, then classify in latent space."""
 
     def __init__(
@@ -36,9 +36,7 @@ class AutoencoderLogisticClassifier(ClassifierMixin, BaseEstimator):
         self.random_state = random_state
         self.device = device
 
-    def fit(
-        self, X: NDArray[np.floating], y: NDArray[np.integer]
-    ) -> "AutoencoderLogisticClassifier":
+    def fit(self, X: NDArray[np.floating], y: NDArray[np.integer]) -> AutoencoderLogisticClassifier:
         """Pretrain the autoencoder and fit logistic regression on its latent codes."""
 
         X_checked, y_checked = check_X_y(X, y, dtype=np.float32, ensure_all_finite=True)
@@ -52,7 +50,9 @@ class AutoencoderLogisticClassifier(ClassifierMixin, BaseEstimator):
             from torch import nn
             from torch.utils.data import DataLoader, TensorDataset
         except ImportError as exc:  # pragma: no cover
-            raise RuntimeError("Install the optional 'neural' dependency group to use PyTorch.") from exc
+            raise RuntimeError(
+                "Install the optional 'neural' dependency group to use PyTorch."
+            ) from exc
 
         torch.manual_seed(self.random_state)
         if self.device == "auto":
@@ -132,7 +132,8 @@ class AutoencoderLogisticClassifier(ClassifierMixin, BaseEstimator):
         device = torch.device(self.device_)
         self.encoder_.eval()
         with torch.no_grad():
-            return self.encoder_(torch.from_numpy(X_checked).to(device)).cpu().numpy()
+            latent = self.encoder_(torch.from_numpy(X_checked).to(device)).cpu().numpy()
+        return np.asarray(latent, dtype=np.float32)
 
     def predict_proba(self, X: NDArray[np.floating]) -> NDArray[np.float64]:
         """Return probabilities from the latent-space classifier."""

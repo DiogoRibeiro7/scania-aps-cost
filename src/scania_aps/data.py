@@ -15,8 +15,7 @@ from zipfile import ZipFile
 import pandas as pd
 
 UCI_ARCHIVE_URL = (
-    "https://archive.ics.uci.edu/static/public/421/"
-    "aps%2Bfailure%2Bat%2Bscania%2Btrucks.zip"
+    "https://archive.ics.uci.edu/static/public/421/aps%2Bfailure%2Bat%2Bscania%2Btrucks.zip"
 )
 TRAIN_FILENAME = "aps_failure_training_set.csv"
 TEST_FILENAME = "aps_failure_test_set.csv"

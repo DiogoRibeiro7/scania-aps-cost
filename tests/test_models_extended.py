@@ -1,4 +1,7 @@
+import importlib.util
+
 import numpy as np
+import pytest
 from sklearn.datasets import make_classification
 
 from scania_aps.model_search import candidates_for_family
@@ -7,6 +10,24 @@ from scania_aps.models.factory import build_candidate
 from scania_aps.models.mlp import TorchMLPClassifier
 from scania_aps.models.svm import LinearSVMConfig, build_linear_svm_pipeline
 from scania_aps.models.trees import TreeEnsembleConfig, build_tree_pipeline
+
+# Which optional distribution each family's builder needs. The modules
+# themselves import lazily, so only *constructing* the estimator can fail.
+OPTIONAL_BACKEND: dict[str, str | None] = {
+    "logistic": None,
+    "linear_svm": None,
+    "random_forest": None,
+    "extra_trees": None,
+    "xgboost": "xgboost",
+    "lightgbm": "lightgbm",
+    "mlp": "torch",
+    "autoencoder": "torch",
+}
+
+
+def _skip_without(module: str | None) -> None:
+    if module is not None and importlib.util.find_spec(module) is None:
+        pytest.skip(f"optional dependency '{module}' is not installed")
 
 
 def test_svm_and_tree_builders_expose_expected_estimators() -> None:
@@ -19,25 +40,21 @@ def test_svm_and_tree_builders_expose_expected_estimators() -> None:
     assert extra.named_steps["model"].n_estimators == 10
 
 
-def test_all_model_families_have_quick_candidates() -> None:
-    families = [
-        "logistic",
-        "linear_svm",
-        "random_forest",
-        "extra_trees",
-        "xgboost",
-        "lightgbm",
-        "mlp",
-        "autoencoder",
-    ]
-    for family in families:
-        candidates = candidates_for_family(family, profile="quick")
-        assert len(candidates) == 3
-        model = build_candidate(candidates[0])
-        assert model is not None
+@pytest.mark.parametrize("family", sorted(OPTIONAL_BACKEND))
+def test_family_has_quick_candidates(family: str) -> None:
+    """Candidate generation must work for every family, installed or not."""
+
+    candidates = candidates_for_family(family, profile="quick")
+    assert len(candidates) == 3
+
+    # Building the estimator is what needs the optional backend.
+    _skip_without(OPTIONAL_BACKEND[family])
+    assert build_candidate(candidates[0]) is not None
 
 
 def test_torch_models_fit_small_dataset() -> None:
+    pytest.importorskip("torch", reason="requires the optional 'neural' dependency group")
+
     X, y = make_classification(
         n_samples=160,
         n_features=12,

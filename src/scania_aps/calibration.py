@@ -2,21 +2,23 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Literal
 
 import pandas as pd
 from sklearn.calibration import CalibratedClassifierCV
+
+from scania_aps._types import FittedEstimator
 
 CalibrationMethod = Literal["sigmoid", "isotonic"]
 
 
 def calibrate_prefit_model(
-    fitted_model: Any,
+    fitted_model: FittedEstimator,
     X_calibration: pd.DataFrame,
     y_calibration: pd.Series,
     *,
     method: CalibrationMethod,
-) -> Any:
+) -> FittedEstimator:
     """Calibrate an already-fitted model on a dedicated calibration subset.
 
     Scikit-learn's ``FrozenEstimator`` explicitly prevents refitting the base
