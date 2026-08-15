@@ -1,4 +1,4 @@
-.PHONY: install install-all hooks format lint test coverage check build clean \
+.PHONY: install install-all hooks format lint typecheck test coverage check build clean \
         download logistic boosted study calibration imbalance features ablation
 
 install:
@@ -14,9 +14,11 @@ format:
 	poetry run ruff check src tests --fix
 	poetry run ruff format src tests
 
+# Every check CI runs, over every file including notebooks.
 lint:
-	poetry run ruff check src tests
-	poetry run ruff format --check src tests
+	poetry run pre-commit run --all-files
+
+typecheck:
 	poetry run mypy src
 
 test:

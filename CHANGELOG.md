@@ -23,12 +23,27 @@ behaviour was modified.
   extraction path SECURITY.md puts in scope.
 - A `slow` pytest marker for the end-to-end study runs; deselect with
   `-m 'not slow'`.
+- Tests for every `validate()` branch on the model configuration dataclasses.
+  All five config modules now sit at 100%; previously not one of those guard
+  rails was executed by a test.
 
 ### Changed
 
-- Coverage rose from 54% to 92%. Seven modules that were entirely
+- Coverage rose from 54% to 94%. Seven modules that were entirely
   untested — `studies.py`, `cli.py`, `feature_selection.py`, `experiment.py`,
   `optimization.py`, `resampling.py` and `calibration.py` — are now exercised.
+- CI now runs `pre-commit run --all-files` instead of repeating ruff and mypy
+  invocations. The local hooks and the CI gate are the same checks from the same
+  pinned versions, so they cannot drift.
+- `make lint` delegates to pre-commit; `make typecheck` runs mypy alone.
+
+### Fixed
+
+- The pre-commit hooks added in 0.2.1 had never been run and did not pass. CI
+  linted only `src` and `tests`, so 43 ruff violations in `experiments/*.ipynb`
+  went unreported and the hooks would have failed on a contributor's first
+  commit. The notebooks are now formatted and the hook versions are pinned to
+  match the project's own ruff.
 
 ## 0.2.2 - 2026-08-15
 

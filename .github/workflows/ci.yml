@@ -39,17 +39,21 @@ jobs:
           path: .venv
           key: venv-lint-3.12-${{ hashFiles('poetry.lock') }}
 
+      - name: Cache pre-commit environments
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-3.12-${{ hashFiles('.pre-commit-config.yaml') }}
+
       - run: poetry check --lock
       - run: poetry install --no-interaction
 
-      - name: Ruff lint
-        run: poetry run ruff check src tests
-
-      - name: Ruff format
-        run: poetry run ruff format --check src tests
-
-      - name: Mypy (strict)
-        run: poetry run mypy src
+      # Runs ruff, ruff-format, mypy --strict and the hygiene hooks over *every*
+      # file, notebooks included. Delegating to pre-commit rather than repeating
+      # the commands here is what stops CI and the local hooks from drifting
+      # apart: they are now the same checks, from the same pinned versions.
+      - name: Pre-commit (all files)
+        run: poetry run pre-commit run --all-files --show-diff-on-failure
 
       - name: Validate citation metadata
         run: |
