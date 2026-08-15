@@ -1,5 +1,35 @@
 # Changelog
 
+## Unreleased
+
+Test coverage for the study layer. **No reported result changes**: no source
+behaviour was modified.
+
+### Added
+
+- A synthetic APS-shaped CSV fixture in `tests/conftest.py`, so the suite never
+  depends on the 60,000-row UCI download. Each row carries a unique `row_id`
+  that lets a test fingerprint exactly which observations an estimator saw.
+- Leakage tests for `studies.py` asserting the invariants CONTRIBUTING.md calls
+  non-negotiable: no official test row reaches any `fit`, no calibration or
+  threshold row is used to estimate parameters, and no threshold is optimized on
+  the test set. The first was verified to fail against a deliberately injected
+  leak, so it is not vacuous.
+- A test that reported `total_cost` really equals `10*FP + 500*FN`.
+- Tests for `calibration.py` (including that the base model is never refit),
+  `resampling.py` (sampling stays fit-only), `feature_selection.py`,
+  `optimization.py`, `experiment.py` and the CLI dispatch table.
+- Tests for `download_dataset` against a local fake archive, covering the
+  extraction path SECURITY.md puts in scope.
+- A `slow` pytest marker for the end-to-end study runs; deselect with
+  `-m 'not slow'`.
+
+### Changed
+
+- Coverage rose from 54% to 92%. Seven modules that were entirely
+  untested — `studies.py`, `cli.py`, `feature_selection.py`, `experiment.py`,
+  `optimization.py`, `resampling.py` and `calibration.py` — are now exercised.
+
 ## 0.2.2 - 2026-08-15
 
 Archived on Zenodo under concept DOI

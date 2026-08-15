@@ -124,3 +124,6 @@ ignore_missing_imports = true
 testpaths = ["tests"]
 # No --maxfail: CI should report every failure in one run, not just the first.
 addopts = "-q --disable-warnings --strict-markers --strict-config"
+markers = [
+  "slow: end-to-end study runs; deselect with -m 'not slow'",
+]
