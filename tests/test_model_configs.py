@@ -9,7 +9,6 @@ so a broken guard would have gone unnoticed.
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import Any
 
 import pytest
 
@@ -19,7 +18,11 @@ from scania_aps.models.logistic import LogisticConfig
 from scania_aps.models.svm import LinearSVMConfig
 from scania_aps.models.trees import TreeEnsembleConfig
 
-CONFIGS: dict[str, Any] = {
+# Every config dataclass exposes validate(); the union keeps that explicit
+# instead of falling back to Any.
+ModelConfig = BoostedConfig | LightGBMConfig | LogisticConfig | LinearSVMConfig | TreeEnsembleConfig
+
+CONFIGS: dict[str, ModelConfig] = {
     "logistic": LogisticConfig(),
     "linear_svm": LinearSVMConfig(),
     "random_forest": TreeEnsembleConfig(kind="random_forest"),
@@ -81,7 +84,7 @@ def test_default_configurations_are_valid(name: str) -> None:
     ids=lambda v: str(v)[:24],
 )
 def test_invalid_hyperparameters_are_rejected(
-    config: Any, field: str, value: Any, message: str
+    config: ModelConfig, field: str, value: object, message: str
 ) -> None:
     with pytest.raises(ValueError, match=message):
         replace(config, **{field: value}).validate()
@@ -110,7 +113,7 @@ def test_both_tree_kinds_are_supported(kind: str) -> None:
 
 
 def test_string_max_features_bypasses_the_float_range_check() -> None:
-    """"sqrt" and "log2" are valid; only float values carry a range constraint."""
+    """ "sqrt" and "log2" are valid; only float values carry a range constraint."""
 
     for value in ("sqrt", "log2"):
         TreeEnsembleConfig(kind="random_forest", max_features=value).validate()
