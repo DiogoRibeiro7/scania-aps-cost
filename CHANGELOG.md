@@ -26,7 +26,7 @@ behaviour was modified.
 
 ### Changed
 
-- Coverage rose from 54% to roughly 89%. Seven modules that were entirely
+- Coverage rose from 54% to 92%. Seven modules that were entirely
   untested — `studies.py`, `cli.py`, `feature_selection.py`, `experiment.py`,
   `optimization.py`, `resampling.py` and `calibration.py` — are now exercised.
 
