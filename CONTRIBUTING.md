@@ -28,12 +28,15 @@ The UCI data is fetched at runtime and is never committed.
 ## Checks before you open a pull request
 
 ```bash
-make lint    # ruff check + mypy --strict
+make lint    # pre-commit over every file: ruff, ruff-format, mypy --strict, hygiene
 make test    # pytest
 ```
 
-All three must pass. CI runs the same commands on Python 3.11, 3.12 and 3.13,
-plus one job with every optional group installed.
+Both must pass. `make lint` delegates to pre-commit, and so does CI, so the
+checks you run locally are exactly the checks that gate the pull request —
+including the notebooks, which the bare `ruff check src tests` did not cover.
+Tests run on Python 3.11, 3.12 and 3.13, plus one job with every optional group
+installed.
 
 ## Research rules that reviews enforce
 
