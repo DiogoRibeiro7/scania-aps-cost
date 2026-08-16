@@ -150,24 +150,31 @@ The older three-way split is retained for the original logistic/XGBoost baseline
 
 ## Experiment notebooks
 
-```text
-experiments/
-├── 01_data_quality_and_missingness.ipynb
-├── 02_cost_sensitive_baselines.ipynb
-├── 03_logistic_regularization.ipynb
-├── 04_svm_margin_regularization.ipynb
-├── 05_tree_ensembles.ipynb
-├── 06_gradient_boosting.ipynb
-├── 07_neural_network_optimization.ipynb
-├── 08_imbalance_methods.ipynb
-├── 09_probability_calibration.ipynb
-├── 10_threshold_optimization.ipynb
-├── 11_feature_selection.ipynb
-├── 12_ablation_study.ipynb
-└── 13_final_model_comparison.ipynb
-```
+Each notebook answers one question and is committed **executed**, so the tables and
+figures render on GitHub without installing anything or downloading the data. They call
+package code and contain no hard-coded performance numbers.
 
-The notebooks call package code and do not contain hard-coded performance numbers.
+| # | Notebook | The question it answers |
+|---|---|---|
+| 01 | [Data quality and missingness](experiments/01_data_quality_and_missingness.ipynb) | What is in the data, and is the missingness itself informative? |
+| 02 | [Cost-sensitive baselines](experiments/02_cost_sensitive_baselines.ipynb) | What do the trivial policies cost, and where should the threshold sit? |
+| 03 | [Logistic regularization](experiments/03_logistic_regularization.ipynb) | Does the form of shrinkage change cost, or only the coefficient count? |
+| 04 | [Linear SVM margins](experiments/04_svm_margin_regularization.ipynb) | Can a model with no probabilities still be operated at a cost-optimal point? |
+| 05 | [Tree ensembles](experiments/05_tree_ensembles.ipynb) | Does extra randomisation help when features are redundant and failures rare? |
+| 06 | [Gradient boosting](experiments/06_gradient_boosting.ipynb) | How do shrinkage, tree count and explicit L1/L2 penalties trade off? |
+| 07 | [Neural optimization](experiments/07_neural_network_optimization.ipynb) | Does the optimiser change where the network ends up, or only how fast? |
+| 08 | [Imbalance strategies](experiments/08_imbalance_methods.ipynb) | Does rebalancing the data beat simply moving the threshold? |
+| 09 | [Probability calibration](experiments/09_probability_calibration.ipynb) | Do the predicted probabilities mean what they say — and does it matter? |
+| 10 | [Threshold optimization](experiments/10_threshold_optimization.ipynb) | **How much of the gain comes from the decision rule rather than the model?** |
+| 11 | [Feature selection](experiments/11_feature_selection.ipynb) | How many of the 171 sensors matter, and do the methods agree? |
+| 12 | [Ablation study](experiments/12_ablation_study.ipynb) | Which components are actually load-bearing? |
+| 13 | [Final comparison](experiments/13_final_model_comparison.ipynb) | With every family tuned honestly, which one should be deployed? |
+
+Notebook 10 is the central one: it isolates how much of the achievable cost reduction
+comes from the operating threshold rather than from the model.
+
+Charts come from `scania_aps.plotting`, which carries the shared house style and a
+palette validated for colour-vision deficiency.
 
 ## Repository structure
 

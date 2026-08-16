@@ -135,6 +135,7 @@ class TorchMLPClassifier(ClassifierMixin, BaseEstimator):  # type: ignore[misc]
         layers.append(nn.Linear(in_features, 1))
         model = nn.Sequential(*layers).to(device)
 
+        optimizer: torch.optim.Optimizer
         if self.optimizer == "sgd":
             optimizer = torch.optim.SGD(
                 model.parameters(),
@@ -151,7 +152,9 @@ class TorchMLPClassifier(ClassifierMixin, BaseEstimator):  # type: ignore[misc]
                 model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay
             )
 
-        scheduler: object | None
+        scheduler: (
+            torch.optim.lr_scheduler.LRScheduler | torch.optim.lr_scheduler.ReduceLROnPlateau | None
+        )
         if self.scheduler == "cosine":
             scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.max_epochs)
         elif self.scheduler == "plateau":
@@ -210,11 +213,12 @@ class TorchMLPClassifier(ClassifierMixin, BaseEstimator):  # type: ignore[misc]
             train_loss = float(np.mean(epoch_losses)) if epoch_losses else float("nan")
             history.append({"epoch": float(epoch), "train_loss": train_loss, "val_loss": val_loss})
 
-            if scheduler is not None:
-                if self.scheduler == "plateau":
-                    scheduler.step(val_loss)  # type: ignore[union-attr]
-                else:
-                    scheduler.step()  # type: ignore[union-attr]
+            # Dispatch on the scheduler's own type: ReduceLROnPlateau steps on
+            # the monitored metric, every other scheduler steps on the epoch.
+            if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+                scheduler.step(val_loss)
+            elif scheduler is not None:
+                scheduler.step()
 
             if val_loss < best_val - 1e-6:
                 best_val = val_loss

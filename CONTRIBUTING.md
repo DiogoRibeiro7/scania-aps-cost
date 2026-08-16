@@ -77,9 +77,26 @@ rejected even if the tests pass.
 
 ## Notebooks
 
-Notebooks call package code and must not hard-code performance numbers. Clear
-all outputs before committing — results belong in `artifacts/`, which is
-gitignored.
+Notebooks call package code and must not hard-code performance numbers: every
+figure in the text is produced by a cell, never typed in by hand.
+
+**Commit them executed, with their outputs.** The notebooks are the published
+form of the study — a reader on GitHub should see the tables and figures without
+installing anything or obtaining the data. An unexecuted notebook is an empty
+claim.
+
+That means:
+
+- Run the whole notebook top to bottom against the real UCI data before
+  committing. A notebook with stale outputs from an older code path is worse
+  than one with none.
+- Charts go through `scania_aps.plotting`, which carries the house style and a
+  colour-vision-safe palette. Do not hand-roll matplotlib styling per notebook.
+- Keep the narrative. Each notebook states the question it answers, what the
+  reader should look at, and what the result means for the maintenance decision.
+  Code with no prose is not an experiment write-up.
+- Serialized model artifacts still belong in `artifacts/`, which stays
+  gitignored. Only the notebook's own outputs are committed.
 
 ## Commits and pull requests
 

@@ -46,7 +46,11 @@ jobs:
           key: pre-commit-3.12-${{ hashFiles('.pre-commit-config.yaml') }}
 
       - run: poetry check --lock
-      - run: poetry install --no-interaction
+
+      # The optional groups are installed so mypy type-checks against real
+      # torch, xgboost and lightgbm types. Without them those imports resolve
+      # to Any and genuine errors in the estimator code go unreported.
+      - run: poetry install --no-interaction --with boost,neural,imbalance,notebooks
 
       # Runs ruff, ruff-format, mypy --strict and the hygiene hooks over *every*
       # file, notebooks included. Delegating to pre-commit rather than repeating
@@ -136,8 +140,8 @@ jobs:
           path: .venv
           key: venv-full-3.12-${{ hashFiles('poetry.lock') }}
 
-      - name: Install with boosting, neural and imbalance extras
-        run: poetry install --no-interaction --with boost,neural,imbalance
+      - name: Install with every optional group
+        run: poetry install --no-interaction --with boost,neural,imbalance,notebooks
 
       - name: Pytest with coverage
         run: |
