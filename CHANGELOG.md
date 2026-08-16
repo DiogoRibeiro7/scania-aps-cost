@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Migrated off `LogisticRegression(penalty=...)`, which scikit-learn deprecated
+  in 1.8 and **removes in 1.10**. The penalty family now rides on `l1_ratio`
+  alone, where 0 is pure L2, 1 is pure L1 and anything between is elastic net.
+  Verified behaviour-preserving: the old and new arguments produce identical
+  coefficients, so every result published in 0.3.0 stands.
+- Dropped `n_jobs` from the `LogisticRegression` calls, where it has had no
+  effect since scikit-learn 1.8. It is retained on the forests, boosters and
+  `permutation_importance`, where it still does something.
+- Together these removed 138 warnings from the notebook outputs: 61
+  `penalty` deprecations, 51 dead-`n_jobs` notices and 26 "Inconsistent values"
+  conflicts caused by passing `penalty` and `l1_ratio` together.
+
+### Changed
+
+- Minimum scikit-learn raised to 1.8, the release that introduced the
+  `l1_ratio`-only API. Supporting both spellings correctly is not possible from
+  a single code path, because older versions ignore `l1_ratio` unless the
+  penalty is elastic net.
+
 ## 0.3.0 - 2026-08-16
 
 Publishes the study. The notebooks now carry narrative and executed outputs, so
