@@ -173,6 +173,12 @@ package code and contain no hard-coded performance numbers.
 Notebook 10 is the central one: it isolates how much of the achievable cost reduction
 comes from the operating threshold rather than from the model.
 
+**[docs/findings.md](docs/findings.md) summarises what the study established**, with the
+notebook behind each number and an explicit list of what it does not establish. The short
+version: on this problem the decision rule is worth about twice what the choice of
+algorithm is worth, rebalancing the training data mostly does not pay, and calibration
+did not improve the probabilities.
+
 Charts come from `scania_aps.plotting`, which carries the shared house style and a
 palette validated for colour-vision deficiency.
 
@@ -308,9 +314,11 @@ poetry run pytest
 
 ## Documentation
 
+- `docs/findings.md` — **what the study established**, and what it did not.
 - `docs/methodology.md` — statistical protocol and modelling rationale.
 - `docs/experiments.md` — experiment matrix and ablations.
 - `docs/neural_optimization.md` — optimizer and regularization study for the MLP.
+- `docs/releasing.md` — release process and Zenodo archival.
 
 ## Dataset
 
