@@ -2,8 +2,48 @@
 
 ## Unreleased
 
-Test coverage for the study layer. **No reported result changes**: no source
-behaviour was modified.
+Publishes the study. The notebooks now carry narrative and executed outputs, so
+the results are readable on GitHub without running anything, and a shared
+plotting module gives them a consistent, colour-vision-safe house style.
+
+### Added
+
+- `scania_aps.plotting`: the house chart style plus the reusable figures the
+  notebooks need. Its categorical palette was validated for colour-vision
+  deficiency as an ordered set rather than by eye, and its encoding rules are
+  covered by tests — one hue for magnitude, an accent against grey for emphasis,
+  a diverging pair that does not borrow the reserved status colours, and fixed
+  slot order so colour follows the entity rather than the rank.
+- Narrative in all 13 experiment notebooks: the question each answers, what to
+  look at, what it means for the maintenance decision, and what it does not
+  establish. Markdown grows from 310 words to roughly 4,600, and from 13 cells
+  to 65.
+- A README index of the notebooks, one line per question answered.
+
+### Changed
+
+- **The notebooks are committed executed, with their outputs.** This reverses
+  the decision in 0.2.1 to strip them: the `nbstripout` hook is gone and
+  CONTRIBUTING.md now requires a full run against the real data before
+  committing. The notebooks are the published form of the study, and an
+  unexecuted notebook is an empty claim. The 1 MB large-file ceiling is
+  unchanged and still has room to spare: the biggest executed notebook is
+  214 KB and all thirteen together come to 1.6 MB.
+- The lint job installs the optional dependency groups, so mypy checks against
+  real torch, xgboost and lightgbm types instead of resolving them to `Any`.
+- The full-test job installs the `notebooks` group so the plotting tests run.
+
+### Fixed
+
+- Two typing errors in `models/mlp.py` that were invisible while torch was
+  absent: the optimizer variable was inferred as `SGD` and could not hold an
+  `Adam`, and `scheduler.step()` was called with an argument the base
+  `LRScheduler` signature rejects. The scheduler now dispatches on its own type
+  rather than on a configuration string.
+
+## Test coverage for the study layer
+
+**No reported result changes**: no source behaviour was modified.
 
 ### Added
 

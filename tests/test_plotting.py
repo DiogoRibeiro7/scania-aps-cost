@@ -95,9 +95,7 @@ def test_emphasis_bars_highlight_the_cheapest_by_default() -> None:
 
 def test_emphasis_bars_can_highlight_the_maximum() -> None:
     plotting.apply_house_style()
-    fig, ax = plotting.emphasis_bars(
-        ["a", "b", "c"], [1.0, 3.0, 2.0], title="t", highlight="max"
-    )
+    fig, ax = plotting.emphasis_bars(["a", "b", "c"], [1.0, 3.0, 2.0], title="t", highlight="max")
 
     accent = matplotlib.colors.to_rgba(plotting.SERIES[0])
     assert [p.get_facecolor() for p in ax.patches][-1] == accent
@@ -116,9 +114,7 @@ def test_diverging_bars_default_to_the_diverging_pair_not_status() -> None:
 
 def test_diverging_bars_use_status_colours_only_when_asked() -> None:
     plotting.apply_house_style()
-    fig, ax = plotting.diverging_bars(
-        ["worse", "better"], [5.0, -5.0], title="t", semantic=True
-    )
+    fig, ax = plotting.diverging_bars(["worse", "better"], [5.0, -5.0], title="t", semantic=True)
 
     colors = {matplotlib.colors.to_hex(p.get_facecolor()) for p in ax.patches}
     assert colors == {plotting.STATUS_CRITICAL.lower(), plotting.STATUS_GOOD.lower()}
@@ -187,9 +183,7 @@ def test_a_single_series_needs_no_legend_box() -> None:
 
     plotting.apply_house_style()
     x = np.linspace(0, 1, 5)
-    fig, ax = plotting.series_lines(
-        x, {"only": x}, title="t", xlabel="x", ylabel="y"
-    )
+    fig, ax = plotting.series_lines(x, {"only": x}, title="t", xlabel="x", ylabel="y")
 
     assert ax.get_legend() is None
 
@@ -198,9 +192,7 @@ def test_subtitle_does_not_collide_with_the_title() -> None:
     """The subtitle sits below the title, not on top of it."""
 
     plotting.apply_house_style()
-    fig, ax = plotting.magnitude_bars(
-        ["a", "b"], [1.0, 2.0], title="Title", subtitle="Subtitle"
-    )
+    fig, ax = plotting.magnitude_bars(["a", "b"], [1.0, 2.0], title="Title", subtitle="Subtitle")
 
     subtitle = next(t for t in ax.texts if t.get_text() == "Subtitle")
     fig.canvas.draw()

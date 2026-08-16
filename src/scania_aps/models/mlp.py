@@ -153,9 +153,7 @@ class TorchMLPClassifier(ClassifierMixin, BaseEstimator):  # type: ignore[misc]
             )
 
         scheduler: (
-            torch.optim.lr_scheduler.LRScheduler
-            | torch.optim.lr_scheduler.ReduceLROnPlateau
-            | None
+            torch.optim.lr_scheduler.LRScheduler | torch.optim.lr_scheduler.ReduceLROnPlateau | None
         )
         if self.scheduler == "cosine":
             scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.max_epochs)
