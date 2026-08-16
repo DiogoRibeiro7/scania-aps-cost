@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 - 2026-08-16
 
 Publishes the study. The notebooks now carry narrative and executed outputs, so
 the results are readable on GitHub without running anything, and a shared
@@ -41,7 +41,7 @@ plotting module gives them a consistent, colour-vision-safe house style.
   `LRScheduler` signature rejects. The scheduler now dispatches on its own type
   rather than on a configuration string.
 
-## Test coverage for the study layer
+### Test coverage for the study layer
 
 **No reported result changes**: no source behaviour was modified.
 
