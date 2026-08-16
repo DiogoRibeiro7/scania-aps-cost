@@ -108,7 +108,7 @@ class AutoencoderLogisticClassifier(ClassifierMixin, BaseEstimator):  # type: ig
         )
         classifier = LogisticRegression(
             C=self.classifier_C,
-            penalty="l2",
+            l1_ratio=0.0,  # pure L2; `penalty` is removed in scikit-learn 1.10
             class_weight=class_weight,
             solver="lbfgs",
             max_iter=3000,

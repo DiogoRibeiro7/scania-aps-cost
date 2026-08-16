@@ -48,15 +48,20 @@ def build_logistic_pipeline(config: LogisticConfig) -> Pipeline:
     if config.positive_class_weight is not None:
         class_weight = {0: 1.0, 1: float(config.positive_class_weight)}
 
+    # scikit-learn 1.8 deprecated `penalty` in favour of `l1_ratio` alone and
+    # removes it in 1.10: l1_ratio=0 is pure L2, 1 is pure L1, and anything
+    # between is elastic net. The mapping below is behaviour-preserving --
+    # verified to produce identical coefficients on the old and new arguments.
+    # `n_jobs` is dropped because it has had no effect since 1.8.
+    l1_ratio = {"l1": 1.0, "l2": 0.0}.get(config.penalty, config.l1_ratio)
+
     estimator = LogisticRegression(
-        penalty=config.penalty,
         C=config.C,
-        l1_ratio=config.l1_ratio,
+        l1_ratio=l1_ratio,
         solver="saga",
         class_weight=class_weight,
         max_iter=config.max_iter,
         random_state=42,
-        n_jobs=-1,
     )
 
     return Pipeline(

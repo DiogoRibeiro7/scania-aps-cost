@@ -216,13 +216,12 @@ def run_calibration_study(
 
 def _logistic_base(*, class_weight: dict[int, float] | None = None) -> LogisticRegression:
     return LogisticRegression(
-        penalty="l2",
+        l1_ratio=0.0,  # pure L2
         C=0.1,
         class_weight=class_weight,
         solver="saga",
         max_iter=4000,
         random_state=42,
-        n_jobs=-1,
     )
 
 
@@ -299,13 +298,12 @@ def run_feature_selection_study(
     y_refit = pd.concat([split.y_fit, split.y_tune, split.y_calibration], axis=0)
 
     linear = LogisticRegression(
-        penalty="l2",
+        l1_ratio=0.0,  # pure L2
         C=0.1,
         class_weight={0: 1.0, 1: 20.0},
         solver="saga",
         max_iter=4000,
         random_state=42,
-        n_jobs=-1,
     )
     selectors: list[tuple[str, Estimator]] = [
         ("all_features", "passthrough"),
@@ -313,7 +311,11 @@ def run_feature_selection_study(
             "l1_select_from_model",
             SelectFromModel(
                 LogisticRegression(
-                    penalty="l1", C=0.05, solver="saga", max_iter=4000, random_state=42, n_jobs=-1
+                    l1_ratio=1.0,  # pure L1, for embedded selection
+                    C=0.05,
+                    solver="saga",
+                    max_iter=4000,
+                    random_state=42,
                 ),
                 threshold="median",
             ),
@@ -322,7 +324,7 @@ def run_feature_selection_study(
         (
             "rfe_50",
             RFE(
-                LogisticRegression(penalty="l2", C=0.1, solver="liblinear", max_iter=2000),
+                LogisticRegression(l1_ratio=0.0, C=0.1, solver="liblinear", max_iter=2000),
                 n_features_to_select=50,
                 step=0.2,
             ),
