@@ -271,6 +271,10 @@ figures above.
   moved on a change of solver it was not robust to begin with, and this document says so
   at the point it matters.
 
+Several of these limitations are addressable, and
+[roadmap.md](roadmap.md) sets out how — confidence intervals first, since nearly every
+claim above inherits that one.
+
 ## Reproducing any of this
 
 ```bash

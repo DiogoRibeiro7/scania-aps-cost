@@ -315,6 +315,7 @@ poetry run pytest
 ## Documentation
 
 - `docs/findings.md` — **what the study established**, and what it did not.
+- `docs/roadmap.md` — what is worth doing next, ordered by what it would change.
 - `docs/methodology.md` — statistical protocol and modelling rationale.
 - `docs/experiments.md` — experiment matrix and ablations.
 - `docs/neural_optimization.md` — optimizer and regularization study for the MLP.

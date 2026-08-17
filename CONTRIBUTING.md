@@ -104,6 +104,15 @@ Write commit subjects in the imperative mood ("Add isotonic calibration study").
 In the pull request, state what changed, why, and whether any reported cost
 figures move as a result. If a number changes, say which experiment produced it.
 
+## Where the open work is
+
+[docs/roadmap.md](docs/roadmap.md) lists what is worth doing next, ordered by how much each
+item would change what the study can claim, with a rough cost for each. It also has a
+"not planned" section — worth reading before proposing a leaderboard-chasing change.
+
+The highest-value item is confidence intervals: every result currently rests on a single
+train/test split, and that caveat attaches to most of `docs/findings.md`.
+
 ## Reporting problems
 
 Open an issue using one of the templates. For anything security-related, follow
