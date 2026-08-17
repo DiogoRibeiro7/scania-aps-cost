@@ -77,13 +77,27 @@ L2 therefore uses lbfgs and L1 uses liblinear. **Elastic net still uses SAGA and
 
 One consequence of liblinear worth recording: it penalizes the intercept, which lbfgs and SAGA do not. For this problem the effect is largely absorbed by the separately-learned decision threshold, but the L1 and L2 fits are not identically parameterized.
 
-The linear SVM studies
+The linear SVM minimizes the **squared** hinge loss,
 
 \[
-\min_{w,b}\frac12\lVert w\rVert_2^2+C\sum_i\max(0,1-y_i(w^Tx_i+b)),
+\min_{w,b}\frac12\lVert w\rVert_2^2+C\sum_i\max(0,1-y_i(w^Tx_i+b))^2,
 \]
 
-where \(C\) controls the trade-off between margin width and hinge-loss violations.
+where \(C\) controls the trade-off between margin width and margin violations.
+
+The squaring is deliberate and worth stating, because the unsquared hinge is the more
+commonly written form. `LinearSVC` defaults to `squared_hinge`, and on this data the
+unsquared hinge does not converge at all: measured on an 8,000-row sample at \(C=1\), the
+squared hinge converges in 5,961 iterations while `loss="hinge"` exhausts a 10,000
+iteration budget without converging. The squared form is also differentiable everywhere,
+which is why the primal solver handles it better.
+
+Convergence is sensitive to \(C\). Heavier margin regularization converges almost
+immediately (20 iterations at \(C=0.01\)); \(C=1\) needs roughly 6,000 iterations on 8,000
+rows and exceeds the 10,000-iteration cap on the full 42,000-row fit subset. The
+large-\(C\) rows of the SVM sweep are therefore approximate. This does not affect the
+selected configuration, which uses heavy regularization and converges comfortably, but it
+does mean the sweep's upper end should be read as indicative.
 
 ## 6. Tree regularization
 
