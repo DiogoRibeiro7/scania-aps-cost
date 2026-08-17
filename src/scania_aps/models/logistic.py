@@ -39,8 +39,32 @@ class LogisticConfig:
             raise ValueError("max_iter must be positive.")
 
 
+#: Solver chosen per penalty family.
+#:
+#: ``saga`` supports all three penalties, which makes it tempting as a single
+#: uniform choice, but on this data (42,000 rows x 340 columns after
+#: missingness indicators) it does not converge within any practical iteration
+#: budget and is 30-170x slower than a solver that does. A capped ``saga`` fit
+#: is not the model that was asked for: measured on an 8,000-row sample, it
+#: zeroed 121 coefficients under an L1 penalty where the converged
+#: ``liblinear`` fit zeroed 185.
+#:
+#: So each penalty gets the fastest solver that actually reaches an optimum.
+#: Elastic net has no such option -- ``saga`` is the only solver that supports
+#: it -- and those fits remain non-converged. See ``docs/methodology.md``.
+_SOLVERS: dict[str, str] = {
+    "l2": "lbfgs",  # converges in ~100 iterations
+    "l1": "liblinear",  # converges in ~30 iterations
+    "elasticnet": "saga",  # the only option; does not converge on this data
+}
+
+
 def build_logistic_pipeline(config: LogisticConfig) -> Pipeline:
-    """Build an imputation, scaling and SAGA logistic-regression pipeline."""
+    """Build an imputation, scaling and logistic-regression pipeline.
+
+    The solver is chosen from the penalty family rather than fixed, because the
+    one solver that covers all three penalties fails to converge here.
+    """
 
     config.validate()
 
@@ -50,15 +74,13 @@ def build_logistic_pipeline(config: LogisticConfig) -> Pipeline:
 
     # scikit-learn 1.8 deprecated `penalty` in favour of `l1_ratio` alone and
     # removes it in 1.10: l1_ratio=0 is pure L2, 1 is pure L1, and anything
-    # between is elastic net. The mapping below is behaviour-preserving --
-    # verified to produce identical coefficients on the old and new arguments.
-    # `n_jobs` is dropped because it has had no effect since 1.8.
+    # between is elastic net.
     l1_ratio = {"l1": 1.0, "l2": 0.0}.get(config.penalty, config.l1_ratio)
 
     estimator = LogisticRegression(
         C=config.C,
         l1_ratio=l1_ratio,
-        solver="saga",
+        solver=_SOLVERS[config.penalty],
         class_weight=class_weight,
         max_iter=config.max_iter,
         random_state=42,

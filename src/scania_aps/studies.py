@@ -219,7 +219,7 @@ def _logistic_base(*, class_weight: dict[int, float] | None = None) -> LogisticR
         l1_ratio=0.0,  # pure L2
         C=0.1,
         class_weight=class_weight,
-        solver="saga",
+        solver="lbfgs",  # saga does not converge on this data; see models/logistic.py
         max_iter=4000,
         random_state=42,
     )
@@ -301,7 +301,7 @@ def run_feature_selection_study(
         l1_ratio=0.0,  # pure L2
         C=0.1,
         class_weight={0: 1.0, 1: 20.0},
-        solver="saga",
+        solver="lbfgs",  # saga does not converge on this data
         max_iter=4000,
         random_state=42,
     )
@@ -313,7 +313,7 @@ def run_feature_selection_study(
                 LogisticRegression(
                     l1_ratio=1.0,  # pure L1, for embedded selection
                     C=0.05,
-                    solver="saga",
+                    solver="liblinear",  # converges; saga does not
                     max_iter=4000,
                     random_state=42,
                 ),

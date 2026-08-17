@@ -60,7 +60,22 @@ For logistic regression,
 \right].
 \]
 
-The experiments include near-unregularized, L1, L2 and Elastic Net models. SAGA is used because it supports all three regularized penalties in one solver family.
+The experiments include near-unregularized, L1, L2 and Elastic Net models.
+
+The solver is chosen per penalty rather than fixed. SAGA is the only solver covering all three penalties, which makes it attractive as a uniform choice, but on this design matrix (42,000 rows by 340 columns after missingness indicators) it does not converge within a practical iteration budget, and a capped SAGA fit is not the estimator that was requested. Measured on an 8,000-row sample at `C=1`:
+
+| penalty | solver | iterations | converged | seconds | zeroed coefficients |
+|---|---|---|---|---|---|
+| L2 | SAGA | 4000 (capped) | no | 67.1 | 2 |
+| L2 | lbfgs | 104 | yes | 0.4 | 2 |
+| L1 | SAGA | 4000 (capped) | no | 171.1 | 121 |
+| L1 | liblinear | 30 | yes | 5.4 | 185 |
+
+The last column is the substantive point: under an L1 penalty the non-converged SAGA fit understates sparsity by a third, so coefficient counts read off it are wrong, not merely imprecise.
+
+L2 therefore uses lbfgs and L1 uses liblinear. **Elastic net still uses SAGA and still does not converge** — no alternative solver supports it — so elastic-net coefficients in this repository are approximate, and the elastic-net rows of the logistic sweep should be read as indicative rather than exact.
+
+One consequence of liblinear worth recording: it penalizes the intercept, which lbfgs and SAGA do not. For this problem the effect is largely absorbed by the separately-learned decision threshold, but the L1 and L2 fits are not identically parameterized.
 
 The linear SVM studies
 
