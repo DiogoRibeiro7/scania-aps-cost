@@ -351,7 +351,7 @@ code a result came from.
 @software{ribeiro_scania_aps_cost,
   author  = {Ribeiro, Diogo},
   title   = {scania-aps-cost: Cost-Sensitive Machine Learning on Scania APS Failure Data},
-  version = {0.3.0},
+  version = {0.3.1},
   doi     = {10.5281/zenodo.21940301},
   year    = {2026},
   url     = {https://github.com/DiogoRibeiro7/scania-aps-cost},
