@@ -39,7 +39,7 @@ The central question is:
 | Model | Main technical questions |
 |---|---|
 | Logistic Regression | L1, L2, Elastic Net, sparsity, coefficient stability, class weighting |
-| Linear SVM | hinge loss, margin regularization through \(C\), class weighting, margin threshold |
+| Linear SVM | squared hinge loss, margin regularization through \(C\), class weighting, margin threshold |
 | Random Forest | bagging, depth, leaf-size and feature-subsampling regularization |
 | Extra Trees | stronger randomization and bias-variance effects |
 | XGBoost | learning rate, depth, child constraints, L1/L2, row/column subsampling, imbalance |

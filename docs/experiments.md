@@ -17,7 +17,7 @@ X\rightarrow\text{preprocessing}\rightarrow\text{representation}\rightarrow
 ## Model families
 
 - Logistic regression: near-unregularized, L1, L2 and Elastic Net.
-- Linear SVM: hinge loss, margin regularization through `C`, class weighting.
+- Linear SVM: squared hinge loss, margin regularization through `C`, class weighting.
 - Random Forest: bagging, depth, leaf-size and feature-subsampling regularization.
 - Extra Trees: stronger split randomization and bias-variance comparison.
 - XGBoost: shrinkage, depth, child constraints, L1/L2 and row/column subsampling.

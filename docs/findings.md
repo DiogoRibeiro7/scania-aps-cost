@@ -256,6 +256,11 @@ figures above.
 - **The features are anonymised.** Nothing here explains *why* a truck fails. This is a
   detection study, not a diagnostic one, and the feature rankings carry no physical
   meaning.
+- **Large-`C` SVM fits do not converge.** `LinearSVC` exceeds its 10,000-iteration budget
+  at weak margin regularization on the full fit subset. The selected configuration uses
+  heavy regularization and converges in a few dozen iterations, so the headline SVM result
+  stands, but the upper end of the sweep in
+  [04](../experiments/04_svm_margin_regularization.ipynb) is approximate.
 - **Elastic-net fits do not converge.** L1 and L2 use solvers that reach an optimum
   (`liblinear` and `lbfgs`), but elastic net has only `saga`, which hits its iteration cap
   on this design matrix. Roughly a third of the logistic sweep is elastic net, so those
