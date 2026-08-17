@@ -60,3 +60,43 @@ def test_fitting_emits_no_deprecation_warnings() -> None:
             or "Inconsistent values" in str(w.message)
         ]
         assert not offenders, f"{penalty}: {offenders}"
+
+
+def test_solver_is_chosen_per_penalty() -> None:
+    """saga covers all three penalties but does not converge on this data.
+
+    Each penalty gets the fastest solver that reaches an optimum. Elastic net
+    has no alternative, so it keeps saga.
+    """
+
+    expected = {"l2": "lbfgs", "l1": "liblinear", "elasticnet": "saga"}
+    for penalty, solver in expected.items():
+        ratio = 0.5 if penalty == "elasticnet" else None
+        config = LogisticConfig(penalty=penalty, l1_ratio=ratio)  # type: ignore[arg-type]
+        assert build_logistic_pipeline(config).named_steps["model"].solver == solver
+
+
+def test_pure_penalties_converge() -> None:
+    """A capped fit is not the model that was requested, so it must converge."""
+
+    import warnings
+
+    import numpy as np
+    from sklearn.datasets import make_classification
+    from sklearn.exceptions import ConvergenceWarning
+
+    X, y = make_classification(
+        n_samples=1500, n_features=60, n_informative=8, weights=[0.9, 0.1], random_state=0
+    )
+
+    for penalty in ("l1", "l2"):
+        config = LogisticConfig(penalty=penalty, C=1.0, max_iter=4000)  # type: ignore[arg-type]
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            pipeline = build_logistic_pipeline(config).fit(X, y)
+
+        stalled = [w for w in caught if issubclass(w.category, ConvergenceWarning)]
+        assert not stalled, f"{penalty} did not converge: {[str(w.message) for w in stalled]}"
+
+        model = pipeline.named_steps["model"]
+        assert int(np.max(model.n_iter_)) < config.max_iter
