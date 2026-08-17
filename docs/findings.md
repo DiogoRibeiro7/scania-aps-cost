@@ -68,15 +68,16 @@ them.
 
 ## 3. Rebalancing the training data mostly does not pay
 
-**Two of the three resampling strategies cost more than applying no correction at all.**
+**SMOTE, the most elaborate strategy here, is the most expensive - and it loses to doing
+nothing.**
 
 | strategy | cost | vs no correction |
 |---|---|---|
-| class weighting | **16,630** | −5% |
-| *no correction* | *17,520* | — |
-| random undersampling | 17,690 | +1% |
-| focal loss (MLP) | 18,120 | +3% |
-| SMOTE | 18,580 | +6% |
+| random undersampling | **16,830** | −5% |
+| class weighting | 17,170 | −3% |
+| *no correction* | *17,710* | — |
+| focal loss (MLP) | 18,120 | +2% |
+| SMOTE | 18,880 | +7% |
 
 *Official test set, each at its own cost-optimal threshold.*
 ([08](../experiments/08_imbalance_methods.ipynb))
@@ -85,9 +86,18 @@ Rebalancing and thresholding attack the same problem — a model reluctant to pr
 rare class — and the threshold solves it directly, at the decision, without touching what
 the model learned. Applying both does not compound; it mostly repeats.
 
-SMOTE is the most elaborate strategy here and the most expensive. Interpolating between
-real failures in 170 anonymised dimensions gives no guarantee the synthetic point
-corresponds to a realisable truck, and the cost column suggests it does not help.
+The whole spread across five strategies is about 2,000, against the 18,600 that finding 1
+attributes to the threshold alone. That comparison is the point: rebalancing is a small
+lever pulled at fit time, thresholding a large one pulled at decision time.
+
+SMOTE deserves the sharpest reading. Interpolating between real failures in 170 anonymised
+dimensions gives no guarantee the synthetic point corresponds to a realisable truck, and
+the cost column suggests it does not help find real ones.
+
+The ordering within the top three is not robust: undersampling and class weighting swapped
+places when the logistic solver was corrected, on differences of a few percent. Read the
+grouping — simple corrections marginally ahead, elaborate ones behind — rather than the
+rank order.
 
 ## 4. Calibration did not improve the probabilities
 
@@ -165,16 +175,23 @@ early stopping on loss — which the estimator does internally — is a proxy, n
 | LightGBM | 12,750 | 0.80 | 18 |
 | MLP | 13,250 | 0.83 | 18 |
 | random forest | 13,750 | 0.86 | 23 |
+| logistic regression | 15,540 | 0.97 | 23 |
 | autoencoder + logistic | 16,200 | 1.01 | 18 |
-| logistic regression | 19,170 | 1.20 | 33 |
 | linear SVM | 19,250 | 1.20 | 30 |
 
 *Official test set, each at its own cost-optimal threshold.*
 ([13](../experiments/13_final_model_comparison.ipynb))
 
-The two linear families are the two most expensive, at roughly **93% above the cheapest**.
-That is a real gap, large enough to justify deploying a tree ensemble over a logistic
-model where the operational cost of doing so is moderate.
+The cheapest tree ensemble costs **56% less than logistic regression** and **48% less
+than the linear SVM**. That is a real gap, large enough to justify deploying a tree
+ensemble where the operational cost of doing so is moderate.
+
+Two things about the middle of this table. Logistic regression **beats the autoencoder**,
+so an unsupervised nonlinear representation feeding a linear classifier bought nothing
+over the linear classifier alone — unsurprising with only 1,000 positive examples to learn
+a representation from. And logistic regression improved 19% (from 19,170) once its solver
+was corrected to one that converges; the earlier figure came from a fit that had hit its
+iteration cap, and it flattered the nonlinear families.
 
 **Extra trees edging XGBoost is not meaningful.** This comparison runs three candidates
 per family; treat the top few as tied and consult the per-family notebooks for tuned
@@ -187,28 +204,34 @@ inspecting every truck**, and 94.7% against inspecting none.
 
 | selector | features kept | cost |
 |---|---|---|
-| extra-trees selection | 170 of 339 | **14,000** |
-| RFE | 50 | 15,750 |
-| all features | 339 | 16,630 |
-| L1 embedded | 339 (selected all) | 16,630 |
-| mutual information | 50 | 17,920 |
+| extra-trees selection | 170 of 339 | **13,840** |
+| RFE | 50 | 15,660 |
+| all features | 339 | 17,170 |
+| L1 embedded | 339 (selected all) | 17,170 |
+| mutual information | 50 | 19,760 |
 
 *Official test set. 339 = 170 sensors + 169 missingness indicators.*
 ([11](../experiments/11_feature_selection.ipynb))
 
-Extra-trees selection cuts the feature set in half and the cost by 16%. Mutual
-information, the only purely univariate method here, is the one selector that does worse
-than using everything — it scores each feature in isolation and so cannot see the
-interactions the model relies on.
+Extra-trees selection halves the feature set and cuts cost by **19%**. Mutual
+information, the only purely univariate method here, is the one selector that does clearly
+worse than using everything — **15% worse** — because it scores each feature in isolation
+and so cannot see the interactions the model relies on.
+
+The L1 row is not a null result but a non-result: `SelectFromModel` with a median
+threshold retained all 339 columns, so it is the all-features row under another name.
 
 ## 9. Development-set results, for reference
 
 These rank configurations within a family and are **not** comparable to the test-set
 figures above.
 
-- **Logistic** — best is L1, `C=0.0014`, class weight 10, at 6,500. The top twelve
-  configurations span 6,500–7,190, so the penalty family matters less than the fact that
-  some regularization is present. ([03](../experiments/03_logistic_regularization.ipynb))
+- **Logistic** — best is L1, `C=0.0014`, class weight 10, at 6,440. The top twelve
+  configurations span 6,440–7,270, so the penalty family matters less than the fact that
+  some regularization is present. The winning model keeps **33 non-zero coefficients of
+  339**, nine of them missingness indicators, so the indicators from finding 2 carry real
+  weight and the sensor set is heavily redundant.
+  ([03](../experiments/03_logistic_regularization.ipynb))
 - **Linear SVM** — the cost-optimal cut sits at a margin of **−0.84**, deep in what a
   default `decision_function > 0` rule would call healthy. That default costs roughly six
   times the optimum. ([04](../experiments/04_svm_margin_regularization.ipynb))
@@ -233,10 +256,15 @@ figures above.
 - **The features are anonymised.** Nothing here explains *why* a truck fails. This is a
   detection study, not a diagnostic one, and the feature rankings carry no physical
   meaning.
-- **The logistic sweep did not fully converge.** `saga` reaches its iteration cap on some
-  configurations; those coefficients are approximate. It does not affect the test-set
-  comparison, which uses the refit winner, but the within-family ranking in
-  [03](../experiments/03_logistic_regularization.ipynb) should be read with that in mind.
+- **Elastic-net fits do not converge.** L1 and L2 use solvers that reach an optimum
+  (`liblinear` and `lbfgs`), but elastic net has only `saga`, which hits its iteration cap
+  on this design matrix. Roughly a third of the logistic sweep is elastic net, so those
+  coefficients are approximate. `methodology.md` carries the measurements.
+- **Some figures here superseded earlier ones.** Every logistic number was recomputed
+  after the solver was corrected; the previous values came from capped fits. Logistic
+  regression's test cost improved 19% and the imbalance ranking reordered. Where a result
+  moved on a change of solver it was not robust to begin with, and this document says so
+  at the point it matters.
 
 ## Reproducing any of this
 
