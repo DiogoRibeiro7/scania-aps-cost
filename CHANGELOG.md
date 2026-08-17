@@ -1,8 +1,29 @@
 # Changelog
 
-## Unreleased
+## 0.3.1 - 2026-08-17
+
+Correctness of the logistic fits, and the deprecation that would have broken the
+package on the next scikit-learn release. **Some published results changed** --
+see below.
 
 ### Fixed
+
+- The logistic solver is now chosen per penalty, because `saga` does not
+  converge on this design matrix. Measured on an 8,000-row sample, L2 with
+  `lbfgs` converges in 104 iterations and 0.4 seconds where `saga` is still
+  moving after 4,000 and 67 seconds; L1 with `liblinear` converges in 30
+  iterations and zeroes 185 coefficients where capped `saga` zeroes 121. A
+  capped fit is not the estimator that was requested, so counts read off it were
+  wrong rather than imprecise. Elastic net keeps `saga` -- no other solver
+  supports it -- and still does not converge; that is documented rather than
+  hidden by loosening `tol`.
+- Recomputed every logistic result. **Logistic regression's test cost improved
+  19%**, from 19,170 to 15,540, and it now beats the autoencoder; the tree
+  ensembles still lead but by 56% rather than 93%. **The imbalance ranking
+  reordered**: undersampling now leads at 16,830 and beats the no-correction
+  baseline where before it lost to it. Because the top three moved on a change
+  of solver, `docs/findings.md` now directs the reader to the grouping rather
+  than the rank order. Notebooks 09, 10 and 12 use XGBoost and were unaffected.
 
 - Migrated off `LogisticRegression(penalty=...)`, which scikit-learn deprecated
   in 1.8 and **removes in 1.10**. The penalty family now rides on `l1_ratio`
@@ -22,6 +43,12 @@
   `l1_ratio`-only API. Supporting both spellings correctly is not possible from
   a single code path, because older versions ignore `l1_ratio` unless the
   penalty is elastic net.
+
+### Added
+
+- `docs/findings.md`: what the study established, with the notebook behind each
+  number, development-set and test-set figures kept separate, and an explicit
+  list of what the study does not establish.
 
 ## 0.3.0 - 2026-08-16
 
