@@ -29,7 +29,7 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
-  "numpy>=2.0",
+  "numpy>=2.4.6",
   "pandas>=2.2",
   "scikit-learn>=1.8",
   "joblib>=1.4",
