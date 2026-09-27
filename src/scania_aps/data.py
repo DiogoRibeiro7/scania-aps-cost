@@ -10,9 +10,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.request import urlopen
-from zipfile import ZipFile
+from zipfile import BadZipFile, ZipFile
 
 import pandas as pd
+from dataexcept import DataLoadingError, FileReadError, FileWriteError, wrapping
 
 UCI_ARCHIVE_URL = (
     "https://archive.ics.uci.edu/static/public/421/aps%2Bfailure%2Bat%2Bscania%2Btrucks.zip"
@@ -48,7 +49,8 @@ def download_dataset(raw_dir: Path, *, overwrite: bool = False) -> tuple[Path, P
     if not isinstance(raw_dir, Path):
         raise TypeError("raw_dir must be a pathlib.Path")
 
-    raw_dir.mkdir(parents=True, exist_ok=True)
+    with wrapping(OSError, FileWriteError, path=str(raw_dir)):
+        raw_dir.mkdir(parents=True, exist_ok=True)
     train_path = raw_dir / TRAIN_FILENAME
     test_path = raw_dir / TEST_FILENAME
 
@@ -56,13 +58,23 @@ def download_dataset(raw_dir: Path, *, overwrite: bool = False) -> tuple[Path, P
         return train_path, test_path
 
     archive_path = raw_dir / "scania_aps.zip"
-    with urlopen(UCI_ARCHIVE_URL, timeout=120) as response:  # noqa: S310
-        archive_path.write_bytes(response.read())
+    with (
+        wrapping(OSError, DataLoadingError, source=UCI_ARCHIVE_URL),
+        urlopen(UCI_ARCHIVE_URL, timeout=120) as response,  # noqa: S310
+    ):
+        archive_bytes = response.read()
+    with wrapping(OSError, FileWriteError, path=str(archive_path)):
+        archive_path.write_bytes(archive_bytes)
 
-    with ZipFile(archive_path) as archive:
+    with (
+        wrapping((BadZipFile, OSError), DataLoadingError, source=str(archive_path)),
+        ZipFile(archive_path) as archive,
+        wrapping(OSError, FileWriteError, path=str(raw_dir)),
+    ):
         archive.extractall(raw_dir)
 
-    archive_path.unlink(missing_ok=True)
+    with wrapping(OSError, FileWriteError, path=str(archive_path)):
+        archive_path.unlink(missing_ok=True)
 
     if not train_path.exists() or not test_path.exists():
         raise FileNotFoundError("The UCI archive did not contain the expected Scania CSV files.")
@@ -73,7 +85,10 @@ def download_dataset(raw_dir: Path, *, overwrite: bool = False) -> tuple[Path, P
 def _header_row(path: Path) -> int:
     """Return the zero-based row containing the CSV header."""
 
-    with path.open("r", encoding="utf-8", errors="replace") as handle:
+    with (
+        wrapping(OSError, FileReadError, path=str(path)),
+        path.open("r", encoding="utf-8", errors="replace") as handle,
+    ):
         for line_number, line in enumerate(handle):
             stripped = line.strip().lower()
             if stripped.startswith("class,") or stripped.startswith('"class",'):
@@ -92,7 +107,11 @@ def read_raw_csv(path: Path) -> ScaniaDataset:
         raise FileNotFoundError(path)
 
     header_row = _header_row(path)
-    frame = pd.read_csv(path, skiprows=header_row, na_values=["na", "NA"])
+    with (
+        wrapping((OSError, UnicodeError), FileReadError, path=str(path)),
+        wrapping(pd.errors.ParserError, DataLoadingError, source=str(path)),
+    ):
+        frame = pd.read_csv(path, skiprows=header_row, na_values=["na", "NA"])
 
     if "class" not in frame.columns:
         raise ValueError("Expected a 'class' target column.")

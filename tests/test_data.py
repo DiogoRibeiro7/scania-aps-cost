@@ -1,6 +1,8 @@
 from pathlib import Path
 
+import pandas as pd
 import pytest
+from dataexcept import DataLoadingError, FileReadError
 
 from scania_aps.data import read_raw_csv
 
@@ -68,6 +70,44 @@ def test_non_numeric_feature_values_become_missing(tmp_path: Path) -> None:
 def test_missing_file_is_reported_clearly(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError):
         read_raw_csv(tmp_path / "absent.csv")
+
+
+def test_csv_read_failure_keeps_its_path_and_cause(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "broken.csv"
+    path.write_text("class,aa_000\nneg,1\n", encoding="utf-8")
+    cause = pd.errors.ParserError("malformed CSV")
+
+    def fail_read(*args: object, **kwargs: object) -> None:
+        raise cause
+
+    monkeypatch.setattr(pd, "read_csv", fail_read)
+    with pytest.raises(DataLoadingError) as caught:
+        read_raw_csv(path)
+
+    assert caught.value.source == str(path)
+    assert caught.value.original is cause
+    assert caught.value.__cause__ is cause
+
+
+def test_csv_header_read_failure_keeps_its_path_and_cause(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "unreadable.csv"
+    path.touch()
+    cause = PermissionError("permission denied")
+
+    def fail_open(self: Path, *args: object, **kwargs: object) -> None:
+        raise cause
+
+    monkeypatch.setattr(Path, "open", fail_open)
+    with pytest.raises(FileReadError) as caught:
+        read_raw_csv(path)
+
+    assert caught.value.path == str(path)
+    assert caught.value.original is cause
+    assert caught.value.__cause__ is cause
 
 
 def test_a_file_without_a_header_is_rejected(tmp_path: Path) -> None:

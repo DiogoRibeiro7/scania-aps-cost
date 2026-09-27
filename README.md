@@ -239,6 +239,12 @@ poetry run scania-aps download
 
 The original UCI data is downloaded at runtime and is not committed to the repository.
 
+DataExcept reports failed downloads and CSV parsing as `DataLoadingError`, and
+filesystem read/write failures as `FileReadError` / `FileWriteError`. These
+exceptions include the source or path and preserve the underlying exception
+through `original` and `__cause__`. Dataset content checks (such as missing
+headers or unknown target labels) continue to raise `ValueError`.
+
 ## Run the studies
 
 Original baselines:

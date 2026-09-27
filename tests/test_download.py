@@ -9,10 +9,12 @@ from __future__ import annotations
 import io
 import zipfile
 from pathlib import Path
+from urllib.error import URLError
 
 import pytest
+from dataexcept import DataLoadingError
 
-from scania_aps.data import TEST_FILENAME, TRAIN_FILENAME, download_dataset
+from scania_aps.data import TEST_FILENAME, TRAIN_FILENAME, UCI_ARCHIVE_URL, download_dataset
 
 
 def _archive_bytes(names: tuple[str, ...] = (TRAIN_FILENAME, TEST_FILENAME)) -> bytes:
@@ -100,3 +102,35 @@ def test_the_target_directory_is_created(tmp_path: Path, fake_archive: list[str]
     download_dataset(nested)
 
     assert nested.is_dir()
+
+
+def test_download_network_failure_keeps_source_and_cause(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cause = URLError("offline")
+
+    def fail_urlopen(*args: object, **kwargs: object) -> None:
+        raise cause
+
+    monkeypatch.setattr("scania_aps.data.urlopen", fail_urlopen)
+    with pytest.raises(DataLoadingError) as caught:
+        download_dataset(tmp_path)
+
+    assert caught.value.source == UCI_ARCHIVE_URL
+    assert caught.value.original is cause
+    assert caught.value.__cause__ is cause
+
+
+def test_invalid_download_archive_is_reported_as_loading_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def fake_urlopen(*args: object, **kwargs: object) -> _FakeResponse:
+        return _FakeResponse(b"not a zip file")
+
+    monkeypatch.setattr("scania_aps.data.urlopen", fake_urlopen)
+    with pytest.raises(DataLoadingError) as caught:
+        download_dataset(tmp_path)
+
+    assert caught.value.source == str(tmp_path / "scania_aps.zip")
+    assert isinstance(caught.value.original, zipfile.BadZipFile)
+    assert caught.value.__cause__ is caught.value.original
