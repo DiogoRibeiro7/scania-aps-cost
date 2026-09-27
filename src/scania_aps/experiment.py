@@ -7,9 +7,9 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-import joblib
 import pandas as pd
 
+from scania_aps.artifacts import create_artifact_dir, dump_model, write_text
 from scania_aps.costs import bayes_threshold, optimize_threshold
 from scania_aps.data import read_raw_csv
 from scania_aps.metrics import Evaluation, evaluate_probabilities
@@ -21,8 +21,8 @@ from scania_aps.split import development_split
 
 def _write_evaluation(path: Path, evaluation: Evaluation, extra: dict[str, Any]) -> None:
     payload: dict[str, Any] = {"evaluation": evaluation.to_dict(), **extra}
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    create_artifact_dir(path.parent)
+    write_text(path, json.dumps(payload, indent=2))
 
 
 def run_logistic_experiment(
@@ -62,8 +62,8 @@ def run_logistic_experiment(
         threshold_result.threshold,
     )
 
-    artifacts_dir.mkdir(parents=True, exist_ok=True)
-    joblib.dump(model, artifacts_dir / "logistic_model.joblib")
+    create_artifact_dir(artifacts_dir)
+    dump_model(model, artifacts_dir / "logistic_model.joblib")
     _write_evaluation(
         artifacts_dir / "logistic_results.json",
         evaluation,
@@ -109,8 +109,8 @@ def run_boosted_experiment(
     test_probs = model.predict_proba(test.X)[:, 1]
     evaluation = evaluate_probabilities(test.y.to_numpy(), test_probs, threshold_result.threshold)
 
-    artifacts_dir.mkdir(parents=True, exist_ok=True)
-    joblib.dump(model, artifacts_dir / "boosted_model.joblib")
+    create_artifact_dir(artifacts_dir)
+    dump_model(model, artifacts_dir / "boosted_model.joblib")
     _write_evaluation(
         artifacts_dir / "boosted_results.json",
         evaluation,

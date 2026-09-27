@@ -9,7 +9,6 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Literal
 
-import joblib
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import ExtraTreesClassifier
@@ -20,6 +19,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 from scania_aps._types import Estimator, FittedEstimator
+from scania_aps.artifacts import create_artifact_dir, dump_model, write_csv, write_text
 from scania_aps.calibration import calibrate_prefit_model
 from scania_aps.costs import optimize_score_threshold
 from scania_aps.data import read_raw_csv
@@ -155,7 +155,7 @@ def run_model_family_study(
     test = read_raw_csv(test_csv)
     split = research_split(train.X, train.y)
     output = artifacts_dir / "model_study"
-    output.mkdir(parents=True, exist_ok=True)
+    create_artifact_dir(output)
     rows: list[dict[str, Any]] = []
 
     for family in families:
@@ -166,9 +166,10 @@ def run_model_family_study(
         # PyTorch-backed models can be environment-sensitive when pickled; the
         # configuration and metrics are always persisted regardless.
         with contextlib.suppress(Exception):
-            joblib.dump(model, output / f"{family}_model.joblib")
-        (output / f"{family}_selection.json").write_text(
-            json.dumps([asdict(item) for item in trace], indent=2, default=str), encoding="utf-8"
+            dump_model(model, output / f"{family}_model.joblib")
+        write_text(
+            output / f"{family}_selection.json",
+            json.dumps([asdict(item) for item in trace], indent=2, default=str),
         )
         row: dict[str, Any] = {
             "family": family,
@@ -180,7 +181,7 @@ def run_model_family_study(
         rows.append(row)
 
     frame = pd.DataFrame(rows).sort_values(["total_cost", "pr_auc"], ascending=[True, False])
-    frame.to_csv(output / "comparison.csv", index=False)
+    write_csv(frame, output / "comparison.csv")
     return frame
 
 
@@ -205,12 +206,13 @@ def run_calibration_study(
         rows.append({"family": family, "calibration": method, **evaluation.to_dict()})
 
     output = artifacts_dir / "calibration_study"
-    output.mkdir(parents=True, exist_ok=True)
-    (output / "selection.json").write_text(
-        json.dumps([asdict(item) for item in trace], indent=2, default=str), encoding="utf-8"
+    create_artifact_dir(output)
+    write_text(
+        output / "selection.json",
+        json.dumps([asdict(item) for item in trace], indent=2, default=str),
     )
     frame = pd.DataFrame(rows)
-    frame.to_csv(output / "comparison.csv", index=False)
+    write_csv(frame, output / "comparison.csv")
     return frame
 
 
@@ -274,9 +276,9 @@ def run_imbalance_study(train_csv: Path, test_csv: Path, artifacts_dir: Path) ->
         rows.append({"strategy": name, **evaluation.to_dict()})
 
     output = artifacts_dir / "imbalance_study"
-    output.mkdir(parents=True, exist_ok=True)
+    create_artifact_dir(output)
     frame = pd.DataFrame(rows).sort_values("total_cost")
-    frame.to_csv(output / "comparison.csv", index=False)
+    write_csv(frame, output / "comparison.csv")
     return frame
 
 
@@ -356,9 +358,9 @@ def run_feature_selection_study(
         rows.append({"selection": name, "n_selected": selected_count, **evaluation.to_dict()})
 
     output = artifacts_dir / "feature_selection_study"
-    output.mkdir(parents=True, exist_ok=True)
+    create_artifact_dir(output)
     frame = pd.DataFrame(rows).sort_values("total_cost")
-    frame.to_csv(output / "comparison.csv", index=False)
+    write_csv(frame, output / "comparison.csv")
     return frame
 
 
@@ -411,7 +413,7 @@ def run_xgboost_ablation(train_csv: Path, test_csv: Path, artifacts_dir: Path) -
         rows.append({"ablation": name, **evaluation.to_dict()})
 
     output = artifacts_dir / "ablation_study"
-    output.mkdir(parents=True, exist_ok=True)
+    create_artifact_dir(output)
     frame = pd.DataFrame(rows)
-    frame.to_csv(output / "xgboost_ablation.csv", index=False)
+    write_csv(frame, output / "xgboost_ablation.csv")
     return frame
