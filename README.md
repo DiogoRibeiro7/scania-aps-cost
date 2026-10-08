@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/project-avatar.png" alt="scania-aps-cost project logo" width="160" height="160">
+</p>
+
 # Scania APS Cost-Sensitive Machine Learning
 
 [![CI](https://github.com/DiogoRibeiro7/scania-aps-cost/actions/workflows/ci.yml/badge.svg)](https://github.com/DiogoRibeiro7/scania-aps-cost/actions/workflows/ci.yml)
