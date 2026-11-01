@@ -50,12 +50,12 @@ scania-aps = "scania_aps.cli:main"
 packages = [{ include = "scania_aps", from = "src" }]
 
 [tool.poetry.group.dev.dependencies]
-pytest = ">=8.0"
+pytest = ">=9.2.0"
 pytest-cov = ">=5.0"
-ruff = ">=0.6"
-mypy = ">=1.11"
+ruff = ">=0.17.3"
+mypy = ">=2.4.1"
 pandas-stubs = ">=2.2"
-pre-commit = ">=3.8"
+pre-commit = ">=4.7.0"
 
 [tool.poetry.group.boost]
 optional = true
